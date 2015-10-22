@@ -98,6 +98,203 @@ bool DataManager::insertRecord(const char* tablename, DP data[], const int size)
 
 }
 
+//更新记录
+//需要修改null位图和列偏移数组
+bool DataManager::updateRecord(const char* tablename, LP pos, DP data[], int size) {
+
+	//获取记录
+	Data d = getRecordByLP(tablename,pos);
+	TableInfo tb = getTableInfo(tablename);
+
+	int nvlen = 9; //非变长数据部分的字段
+	int flen = 0;
+	for (int i=0; i<tb.FN; i++) {
+		flen += tb.Flen[i];
+	}
+	nvlen += flen;
+	nvlen += ceil((tb.FN + tb.VN) / 8);
+	nvlen += 2*tb.VN;
+	int offpos = nvlen - 2*tb.VN;
+
+	int nstart = 7+flen;
+
+	//更新定长字段
+	bool flag = false;
+	for (int i=0; i<size; i++) {
+		if (RecordTool::isVCol(tb, data[i].first)) {
+			flag = true;
+			continue;
+		}
+		LP p = RecordTool::getSegOffset(tb, data[i].first);
+		//修改定长数据
+		Byte* temp = d.first + p.first;
+		for (int j=0; j<data[i].second.second; j++) {
+			*temp++ = data[i].second.first[j];
+		}
+		//更新NULL位图
+		int nullbyte = nstart + p.second / 8;
+		int whichbit = p.second % 8;
+		*(d.first + nullbyte) |= (1<<whichbit);
+
+	}
+
+
+
+
+	if (flag) { //如果有变长数据
+		//更新变长字段
+
+			Data vdata[tb.VN];
+			int lastpos = nvlen;
+			for (int i=0; i<tb.VN; i++) {
+				int c = 0;
+				c = RecordTool::byte2Int(d.first+offpos+2*i, 2);
+				vdata[i].first = d.first + c;
+				vdata[i].second = c - lastpos;
+				lastpos = c;
+			}
+
+			int vlen = 0;
+			for (int i=0; i<tb.VN; i++) {
+				for (int j=0; j<size; j++) {
+					if (tb.Vname[i] == data[j].first) {
+
+						//修改NULL位图
+						int nullbyte = nstart + (tb.FN+i) / 8;
+						int whichbit = (tb.FN+i) % 8;
+						*(d.first + nullbyte) |= (1<<whichbit);
+
+						vdata[i] = data[i].second;
+						break;
+					}
+				}
+			}
+
+			for (int i=0; i<tb.VN; i++) {
+				vlen += vdata[i].second;
+			}
+
+			Byte* line = new Byte[vlen+nvlen];
+			Byte* temp = d.first;
+			for (int i=0; i<nvlen; i++) { //拷贝非变长数据部分
+				line[i] = *temp++;
+			}
+
+			//拷贝变长数据和修改列偏移数组
+			int vstart = nvlen;
+			for (int i=0; i<tb.VN; i++) {
+				for (int j=0; j<vdata[i].second; j++) {
+					line[vstart++] = vdata[i].first[j];
+				}
+				//修改列偏移数组
+				Byte* offstart = line + offpos + tb.FN + i;
+				int c = vstart;
+				Byte* tempc = (Byte*)&c;
+				*offstart++ = tempc[0];
+				*offstart = tempc[1];
+			}
+			return insertRecord(tablename, Data(line, vlen+nvlen), pos);
+	} else {
+			return insertRecord(tablename, d, pos);
+	}
+
+
+}
+
+//获取属性值满足特定条件的记录
+vector<LP> DataManager::searchRecord(const char*tablename, DP condi) {
+	int pageNum =  getPageNum(tablename);
+	string filepath(tablename);
+	filepath = currentBase + "/" + filepath;
+
+	int fileID = 0;
+	fm->openFile(filepath.c_str(), fileID);
+
+	//遍历除了第一页之外的各个页
+	//获取有空余byte的页的index
+	int pageindex = 0;
+	vector<LP> vec;
+	TableInfo tb = getTableInfo(tablename);
+	for (int i=1; i<pageNum; i++) {
+		bm->getPage(fileID, i, pageindex);
+		Byte* page = (Byte*)bm->addr[i];
+		//取出这一页的槽数
+		int slotNum = 0;
+		slotNum = RecordTool::byte2Int(page+2, 2);
+		for (int j=0; j<slotNum; j++) {
+			if (hasSameSegVal(tb, tablename, LP(i,j), condi)) {
+				vec.push_back(LP(i,j));
+			}
+		}
+	}
+
+	return vec;
+}
+
+bool DataManager::hasSameSegVal(TableInfo& tb, const char* tablename, LP pos, DP condi) {
+	Byte* line = NULL;
+	Data d;
+	d = getRecordByLP(tablename, pos);
+	line = d.first;
+	bool ans = false;
+
+	if (RecordTool::isVCol(tb, condi.first)) {
+		//找到该字段是第几个变长列
+		int col = 0;
+		for (int i=0; i<tb.VN; i++) {
+			if (tb.Vname[i] == condi.first) {
+				col = i;
+				break;
+			}
+		}
+
+		//获取非变长数据部分长度
+
+
+	} else {
+		LP off = RecordTool::getSegOffset(tb, condi.first);
+		line += off.first;
+		for (int i=0; i<tb.Flen[off.second]; i++) {
+			if (condi.second[i] != *line++) {
+				ans = false;
+				break;
+			}
+		}
+	}
+
+	delete[] line;
+	return ans;
+}
+
+//根据位置和表名获取一条数据
+Data DataManager::getRecordByLP(const char* tablename, LP pos) {
+	string filepath(tablename);
+	filepath = currentBase + "/" + filepath;
+	int fileID = 0;
+	fm->openFile(filepath.c_str(), fileID);
+	int pageindex = 0;
+	bm->getPage(fileID, pos.first, pageindex);
+
+	Byte* page = (Byte*)bm->addr[pageindex];
+
+
+
+	//获取记录起始位置
+	int start = 0;
+	start = RecordTool::byte2Int(page+PAGE_SIZE-2*(pos.second+1), 2);
+
+	//获取记录长度
+	int len = 0;
+	len = RecordTool::byte2Int(page+start+1, 2);
+	Byte* record = new Byte[len];
+	Byte* temp = page+start;
+	for (int i=0; i<len; i++) {
+		record[i] = *temp++;
+	}
+	return Data(record,len);
+}
+
+
 int DataManager::getPageLeftSize(int pageindex) {
 	BufType page = bm->addr[pageindex];
 	//page头的前2个byte用来表示剩余字节数

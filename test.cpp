@@ -53,15 +53,20 @@ int main() {
 
 	int a = 135;
 	Data d;
-	char str[10] = "lalalala!";
-	cout << strlen(str) << endl;
+	char str[10] =  "lalalala!";
+	//printf("%#x\n",str);
+	cout << str << endl;
+	cout << *str << endl;
+	char* t1 = str+1;
+	cout << * t1 << endl;
+	//cout << strlen(str) << endl;
 	/*d = RecordTool::int2Data(a);
 	cout << d.second << endl;
 	cout << RecordTool::data2Int(d) << endl;*/
 
-	d = RecordTool::str2Data(str, strlen(str));
-	cout << d.second << endl;
-	cout << RecordTool::data2Str(d) << endl;
+	//d = RecordTool::str2Data(str, strlen(str));
+	//cout << d.second << endl;
+	//cout << RecordTool::data2Str(d) << endl;
 
 	return 0;
 }

@@ -47,6 +47,9 @@ public:
 	//插入一条记录
 	bool insertRecord(const char* tablename, DP data[], const int size);
 
+	//重载函数
+	bool insertRecord(const char* tablename, DP data, LP pos);
+
 	//更新记录
 	bool updateRecord(const char* tablename, LP pos, DP data[], int size);
 
@@ -69,9 +72,14 @@ private:
 	//切换数据库时，map应当clear
 	map<string, TableInfo> tables;
 
+	//工具类函数
 	TableInfo loadTableInfo(const char* tablename); //加载表信息
 	int getPageNum(const char* tablename); //加载表当前的页数
 	int getPageLeftSize(int pageindex); //获取某个page剩余byte数
+	Data getRecordByLP(const char* tablename, LP pos); //根据位置和表名获取一条数据
+	bool hasSameSegVal(TableInfo& tb, const char* tablename, LP pos, DP condi); //判断某条数据的某个字段是否满足特定值
+
+
 
 
 

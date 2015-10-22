@@ -12,12 +12,15 @@
 #include <string>
 #include <cstdlib>
 #include <utility>
+#include "assert.h"
+#include <cmath>
 #include "../utils/pagedef.h"
 using namespace std;
 
 typedef unsigned char Byte;
 
 typedef pair<Byte*, int> Data; //一个数据， first为Data指针，second为数据长度
+
 
 typedef pair<string, Data> DP; //data pair, 用以指定一个数据对, first 为字段名 second为值,
 typedef pair<int,int> LP; //location air 用以定位一条数据记录，first为页号 second为槽号
@@ -52,6 +55,9 @@ public:
 
 	static int data2Int(Data d);
 	static char* data2Str(Data d);
+
+	//获取某个定长字段的位置 first为其在数据行中的起始位置，second表示其列序号
+	static LP getSegOffset(TableInfo& tb, string& segname);
 };
 
 
