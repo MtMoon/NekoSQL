@@ -94,8 +94,13 @@ bool DataManager::insertRecord(const char* tablename, DP data[], const int size)
 
 	//修改剩余字节数
 
+	return true;
 
 
+}
+
+bool DataManager::insertRecord(const char* tablename, DP data, LP pos) {
+	return true;
 }
 
 //更新记录
@@ -138,7 +143,7 @@ bool DataManager::updateRecord(const char* tablename, LP pos, DP data[], int siz
 
 	}
 
-
+	bool ans = true;
 
 
 	if (flag) { //如果有变长数据
@@ -193,10 +198,12 @@ bool DataManager::updateRecord(const char* tablename, LP pos, DP data[], int siz
 				*offstart++ = tempc[0];
 				*offstart = tempc[1];
 			}
-			return insertRecord(tablename, Data(line, vlen+nvlen), pos);
+			ans = insertRecord(tablename, Data(line, vlen+nvlen), pos);
 	} else {
-			return insertRecord(tablename, d, pos);
+			ans = insertRecord(tablename, d, pos);
 	}
+
+	return ans;
 
 
 }
@@ -217,7 +224,7 @@ vector<LP> DataManager::searchRecord(const char*tablename, DP condi) {
 	TableInfo tb = getTableInfo(tablename);
 	for (int i=1; i<pageNum; i++) {
 		bm->getPage(fileID, i, pageindex);
-		Byte* page = (Byte*)bm->addr[i];
+		Byte* page = (Byte*)bm->addr[pageindex];
 		//取出这一页的槽数
 		int slotNum = 0;
 		slotNum = RecordTool::byte2Int(page+2, 2);
@@ -249,13 +256,38 @@ bool DataManager::hasSameSegVal(TableInfo& tb, const char* tablename, LP pos, DP
 		}
 
 		//获取非变长数据部分长度
+		int nvlen = 9;
+		nvlen += 2*tb.VN;
+		nvlen += ceil(tb.FN+tb.VN);
+		for (int i=0; i<tb.FN; i++) {
+			nvlen += tb.Flen[i];
+		}
+
+		int start = 0;
+		if (col == 0) {
+			start = nvlen;
+		} else {
+			int coff = nvlen - 2*tb.VN + 2*(col-1);
+			start = RecordTool::byte2Int(line+coff,2);
+		}
+
+		//int end  = RecordTool::byte2Int(line+nvlen-2*tb.VN+2*col,2);
+
+		line += start;
+		for (int i=0; i<condi.second.second; i++) {
+			if (condi.second.first[i] != *line++) {
+				ans = false;
+				break;
+			}
+		}
+
 
 
 	} else {
 		LP off = RecordTool::getSegOffset(tb, condi.first);
 		line += off.first;
-		for (int i=0; i<tb.Flen[off.second]; i++) {
-			if (condi.second[i] != *line++) {
+		for (int i=0; i<condi.second.second; i++) {
+			if (condi.second.first[i] != *line++) {
 				ans = false;
 				break;
 			}
@@ -327,6 +359,8 @@ int DataManager::getPageNum(const char* tablename) {
 
 //加载表的信息，存于tables并返回
 TableInfo DataManager::loadTableInfo(const char* tablename) {
+	TableInfo tb;
 
+	return tb;
 }
 
