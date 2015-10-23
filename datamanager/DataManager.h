@@ -47,8 +47,8 @@ public:
 	//插入一条记录
 	bool insertRecord(const char* tablename, DP data[], const int size);
 
-	//重载函数
-	bool insertRecord(const char* tablename, DP data, LP pos);
+	//重载函数 直接以位置和Byte流插入
+	bool insertRecord(const char* tablename, Data data, LP pos);
 
 	//更新记录
 	bool updateRecord(const char* tablename, LP pos, DP data[], int size);

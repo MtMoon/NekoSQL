@@ -51,7 +51,7 @@ public:
 
 	static Data int2Data(int c); //int转换为data
 	static Data str2Data(char* str, int size); //字符数组转化为Data
-	static int byte2Int(const Byte* byte, int size); //将从byte首地址开始的sizg个byte转为int size不能大于4
+	static int byte2Int(Byte* byte, int size); //将从byte首地址开始的sizg个byte转为int size不能大于4
 
 	static int data2Int(Data d);
 	static char* data2Str(Data d);

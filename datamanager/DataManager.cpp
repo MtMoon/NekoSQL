@@ -87,7 +87,7 @@ bool DataManager::insertRecord(const char* tablename, DP data[], const int size)
 	}
 
 	//写入数据
-	int slotNum = 0;
+
 	//获取槽数
 
 
@@ -99,7 +99,9 @@ bool DataManager::insertRecord(const char* tablename, DP data[], const int size)
 
 }
 
-bool DataManager::insertRecord(const char* tablename, DP data, LP pos) {
+//LP为插入的位置
+//data的first为整条记录的Byte数组，second为该Byte数组的长度
+bool DataManager::insertRecord(const char* tablename, Data data, LP pos) {
 	return true;
 }
 
@@ -117,7 +119,7 @@ bool DataManager::updateRecord(const char* tablename, LP pos, DP data[], int siz
 		flen += tb.Flen[i];
 	}
 	nvlen += flen;
-	nvlen += ceil((tb.FN + tb.VN) / 8);
+	nvlen += ceil(double(tb.FN + tb.VN) / 8);
 	nvlen += 2*tb.VN;
 	int offpos = nvlen - 2*tb.VN;
 
@@ -258,7 +260,7 @@ bool DataManager::hasSameSegVal(TableInfo& tb, const char* tablename, LP pos, DP
 		//获取非变长数据部分长度
 		int nvlen = 9;
 		nvlen += 2*tb.VN;
-		nvlen += ceil(tb.FN+tb.VN);
+		nvlen += ceil(double(tb.FN+tb.VN)/8);
 		for (int i=0; i<tb.FN; i++) {
 			nvlen += tb.Flen[i];
 		}
@@ -330,7 +332,7 @@ Data DataManager::getRecordByLP(const char* tablename, LP pos) {
 int DataManager::getPageLeftSize(int pageindex) {
 	BufType page = bm->addr[pageindex];
 	//page头的前2个byte用来表示剩余字节数
-	return RecordTool::byte2Int((const Byte*)page, 2);
+	return RecordTool::byte2Int((Byte*)page, 2);
 }
 
 //工具函数
@@ -357,9 +359,65 @@ int DataManager::getPageNum(const char* tablename) {
 	return (int)(buf.st_size / 8);
 }
 
-//加载表的信息，存于tables并返回
+//加载表的信息，存于tables map并返回
 TableInfo DataManager::loadTableInfo(const char* tablename) {
 	TableInfo tb;
+	string filepath(tablename);
+	filepath = currentBase + "/" + filepath;
+	int fileID = 0;
+	fm->openFile(filepath.c_str(), fileID);
+	int pageindex = 0;
+	bm->getPage(fileID, 0, pageindex);
+	Byte* page = (Byte*)bm->addr[pageindex];
+
+	//get FN
+	int fn = 0;
+	fn  =  RecordTool::byte2Int(page,2);
+
+	//get vn
+	int vn = 0;
+	vn =  RecordTool::byte2Int(page+2,2);
+
+	tb.Fname = new string[fn];
+	tb.Vname = new string[vn];
+	tb.Flen = new int[fn];
+
+
+	//获取定长列名
+	int off = 4;
+	for (int i=0; i<fn; i++) {
+		char* name = NULL;
+		name =  RecordTool::data2Str(Data(page+off ,24));
+		tb.Fname[i] = string(name);
+		off += 24;
+	}
+
+	//获取变长列名
+	for (int i=0; i<vn; i++) {
+			char* name = NULL;
+			name =  RecordTool::data2Str(Data(page+off ,24));
+			tb.Vname[i] = string(name);
+			off += 24;
+	}
+
+	//获取定长数据长度
+	for (int i=0; i<fn; i++) {
+		int t = 0;
+		t = RecordTool::byte2Int(page+off,4);
+		tb.Flen[i] = t;
+		off += 4;
+	}
+
+	//获取null位图
+	int nlen = ceil(double(tb.FN + tb.VN) / 8);
+	tb.nullMap = new Byte[nlen];
+	for (int i=0; i<nlen; i++) {
+		tb.nullMap[i] = *(page+off);
+		off++;
+	}
+
+	tb.FN = fn;
+	tb.VN = vn;
 
 	return tb;
 }

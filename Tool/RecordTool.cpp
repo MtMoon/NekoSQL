@@ -16,7 +16,7 @@ Byte* RecordTool::makeRecord(TableInfo tb, int& len, DP data[], int size) {
 
 	//计算记录行长度
 	len = 9;
-	int nullLen = ceil((tb.FN + tb.VN) / 8);
+	int nullLen = ceil(double(tb.FN + tb.VN) / 8);
 	len += nullLen;
 	len += 2*tb.VN;
 	for (int i=0; i<size; i++) {
@@ -180,7 +180,7 @@ char* RecordTool::data2Str(Data d) {
 
 //将从byte首地址开始的sizg个byte转为int
 // 1<= size <= 4
-int RecordTool::byte2Int(const Byte* byte, int size) {
+int RecordTool::byte2Int(Byte* byte, int size) {
 	assert(size>=1 && size <=4);
 	int c = 0;
 	Byte* temp = (Byte*)&c;
