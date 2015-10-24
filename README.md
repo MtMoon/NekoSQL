@@ -34,7 +34,7 @@ This is the course project of *Database System* by MtMoon & magicwish
 
 ###4. Record Line Structure ###
 
->数据行结构类似SQL Server 2000，顺序即具体内容具体如下：
+>数据行结构类似SQL Server 2000，顺序及具体内容具体如下：
 
 + 1 Byte: Tag 各bit信息含义同SQL Server 2000的Tag A
 + 2 Byte: 该行数据总长度
@@ -43,6 +43,6 @@ This is the course project of *Database System* by MtMoon & magicwish
 + 2 Byte: 定长列数
 + ceil(总列数/8): NULL位图
 + 2 Byte: 变长列数
-+ 2*变长列数: 列偏移数组
++ 2*变长列数: 列偏移数组 **注意，列偏移数组中存储的是每个变长数据列结束位置相对数据行首地址的偏移量**
 + m Byte: 变长列数据 
 

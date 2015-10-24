@@ -5,7 +5,7 @@
  *      Author: lql
  */
 #include "bufmanager/BufPageManager.h"
-#include "Tool/RecordTool.h"
+#include "datamanager/DataManager.h"
 #include <iostream>
 #include <iomanip>
 #include <cstring>
@@ -50,23 +50,21 @@ int main() {
 	A &= 0x00;
 	A |= (1<<3);
 	printf("%#x\n",A);  // 按16进制输出*/
-
-	int a = 135;
-	Data d;
-	char str[10] =  "lalalala!";
-	//printf("%#x\n",str);
-	cout << str << endl;
-	cout << *str << endl;
-	char* t1 = str+1;
-	cout << * t1 << endl;
 	//cout << strlen(str) << endl;
-	/*d = RecordTool::int2Data(a);
-	cout << d.second << endl;
-	cout << RecordTool::data2Int(d) << endl;*/
-
+	char str[10] = "lalala!";
+	char* s = str;
+	cout << *s++ << endl;
+	cout << *s++ << endl;
+	cout << str << endl;
 	//d = RecordTool::str2Data(str, strlen(str));
 	//cout << d.second << endl;
 	//cout << RecordTool::data2Str(d) << endl;
+
+	//DataManager dm;
+	//dm.setDatabase("yxy");
+	//cout << dm.getPageNum("lalala") << endl;
+	//dm.createFile("yxy/text");
+	//dm.deleteFile("yxy/text");
 
 	return 0;
 }

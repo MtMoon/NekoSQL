@@ -62,6 +62,11 @@ public:
 	//工具函数
 	TableInfo getTableInfo(const char* tablename);
 
+	//更上层的接口函数
+	void setDatabase(string dirname); 	//切换数据库目录
+	string getCurrentDBName(); //获取当前使用的数据库名
+
+
 private:
 	BufPageManager* bm;
 	FileManager* fm;
@@ -74,10 +79,12 @@ private:
 
 	//工具类函数
 	TableInfo loadTableInfo(const char* tablename); //加载表信息
-	int getPageNum(const char* tablename); //加载表当前的页数
+
 	int getPageLeftSize(int pageindex); //获取某个page剩余byte数
+	int getPageNum(const char* tablename); //加载表当前的页数
 	Data getRecordByLP(const char* tablename, LP pos); //根据位置和表名获取一条数据
 	bool hasSameSegVal(TableInfo& tb, const char* tablename, LP pos, DP condi); //判断某条数据的某个字段是否满足特定值
+
 
 
 

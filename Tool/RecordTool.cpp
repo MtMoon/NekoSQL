@@ -10,6 +10,8 @@
 
 //数据记录行采用SQL Server2000的数据行格式
 //DP的顺序应与TableInfo中一致 先顺序FN个定长数据，再顺序VN个变长数据
+//注意，传入的DP数组中的Data结构体中的Byte指针所指空间会在该函数中被释放
+//返回的Byte*指向存有整条record的堆空间，请调用该函数者进行释放
 //空串: Data.first = 全0bit(定长数据则定长的0比特流，变长数据则非NULL即可), Data.second = 0
 //NULL: Data.first = NULL, Data.second = 0
 Byte* RecordTool::makeRecord(TableInfo tb, int& len, DP data[], int size) {
@@ -24,7 +26,7 @@ Byte* RecordTool::makeRecord(TableInfo tb, int& len, DP data[], int size) {
 	}
 	Byte* line = new Byte[len];
 
-	//make tag A 1Byte
+	//make tag  1Byte
 	line[0] &= 0x00;
 	line[0] |= (1<<4);
 
@@ -34,8 +36,8 @@ Byte* RecordTool::makeRecord(TableInfo tb, int& len, DP data[], int size) {
 
 	//去掉SQL Server 2000中的tagB，使用两个Byte存储该条数据的总长度
 	Byte* temp = (Byte*)&len;
-	line[1] &= *temp++;
-	line[2] &= *temp;
+	line[1] = *temp++;
+	line[2] = *temp;
 
 	//定长部分长度
 	int fsize = 0; //定长数据长度.
@@ -49,6 +51,7 @@ Byte* RecordTool::makeRecord(TableInfo tb, int& len, DP data[], int size) {
 
 	//定长部分数据
 	int count = 5;
+	//注意，data中的顺序需要按建表顺序先定长后变长
 	for (int i=0; i<tb.FN; i++) {
 		if (data[i].second.second == 0) {
 			for (int j=0; j<tb.Flen[i]; j++) {
@@ -63,8 +66,8 @@ Byte* RecordTool::makeRecord(TableInfo tb, int& len, DP data[], int size) {
 		}
 	}
 
-	//列数
-	int colNum = tb.FN + tb.VN;
+	//定长列数
+	int colNum = tb.FN;
 	temp = (Byte*)&colNum;
 	line[count++]  = *temp++;
 	line[count++]  = *temp;
@@ -80,7 +83,7 @@ Byte* RecordTool::makeRecord(TableInfo tb, int& len, DP data[], int size) {
 				nmap |= (1<<j);
 			}
 		}
-		line[count++] = nmap;;
+		line[count++] = nmap;
 	}
 
 	//变列数目
@@ -93,7 +96,8 @@ Byte* RecordTool::makeRecord(TableInfo tb, int& len, DP data[], int size) {
 	int val = count + 2*tb.VN;
 	for (int i=tb.FN; i<size; i++) {
 			val = val + data[i].second.second;
-			temp = (Byte*) &val;
+			int tv = val;
+			temp = (Byte*) &tv;
 			line[count++] = *temp++;
 			line[count++] = *temp;
 	}
@@ -178,7 +182,7 @@ char* RecordTool::data2Str(Data d) {
 	return str;
 }
 
-//将从byte首地址开始的sizg个byte转为int
+//将从byte首地址开始的size个byte转为int
 // 1<= size <= 4
 int RecordTool::byte2Int(Byte* byte, int size) {
 	assert(size>=1 && size <=4);
@@ -190,14 +194,14 @@ int RecordTool::byte2Int(Byte* byte, int size) {
 	return c;
 }
 
-//获取某个定长字段的位置 first为其在数据行中的起始位置，，second表示其列序号
+//获取某个定长字段的位置 first为其在数据行中的起始位置，second表示其列序号
 //注意，只限定长
 LP RecordTool::getSegOffset(TableInfo& tb, string& segname) {
 	int off = 0;
 	int order = 0;
 	for (int i=0; i<tb.FN; i++) {
 		if (tb.Fname[i] == segname) {
-			order = tb.Flen[i];
+			order = i;
 			break;
 		}
 		off += tb.Flen[i];

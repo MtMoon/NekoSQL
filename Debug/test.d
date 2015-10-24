@@ -3,7 +3,10 @@ test.d: ../test.cpp ../bufmanager/BufPageManager.h \
  ../bufmanager/../utils/MyLinkList.h ../bufmanager/../utils/MyBitMap.h \
  ../bufmanager/FindReplace.h ../bufmanager/../utils/MyLinkList.h \
  ../bufmanager/../utils/pagedef.h ../bufmanager/../fileio/FileManager.h \
- ../Tool/RecordTool.h ../Tool/../utils/pagedef.h
+ ../datamanager/DataManager.h \
+ ../datamanager/../bufmanager/BufPageManager.h \
+ ../datamanager/../Tool/RecordTool.h \
+ ../datamanager/../Tool/../utils/pagedef.h
 
 ../bufmanager/BufPageManager.h:
 
@@ -23,6 +26,10 @@ test.d: ../test.cpp ../bufmanager/BufPageManager.h \
 
 ../bufmanager/../fileio/FileManager.h:
 
-../Tool/RecordTool.h:
+../datamanager/DataManager.h:
 
-../Tool/../utils/pagedef.h:
+../datamanager/../bufmanager/BufPageManager.h:
+
+../datamanager/../Tool/RecordTool.h:
+
+../datamanager/../Tool/../utils/pagedef.h:
