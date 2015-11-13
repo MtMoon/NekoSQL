@@ -19,6 +19,9 @@ This is the course project of *Database System* by MtMoon & magicwish
 + FN*24个Byte，定长列名
 + VF*24Byte 变长列名
 + FN*4Byte 定长数据长度
++ VN*4Byte 变长数据长度
++ FN+VN个Byte 表示各个字段键类型 0为不是key，1为一般key，2为primary key
++ FN+VN个Byte 各个字段的类型  目前：0 int 1 char 2 varchar，其余非法
 + ceil((FN+VN)/8) Byte bull位图
 
 >每个列名48Byte, 即24个char，不足时补0(null)，**建表时需对列名长度进行检查**

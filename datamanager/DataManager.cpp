@@ -84,7 +84,7 @@ bool DataManager::insertRecord(const char* tablename, DP data[], const int size)
 	// 寻找合适的页插入
 	int pageNum =  getPageNum(tablename);
 	string filepath(tablename);
-	filepath = currentBase + "/" + filepath;
+	filepath = "DataBase/" + currentBase + "/" + filepath;
 
 	int fileID = 0;
 	fm->openFile(filepath.c_str(), fileID);
@@ -238,7 +238,7 @@ bool DataManager::updateRecord(const char* tablename, LP pos, DP data[], int siz
 vector<LP> DataManager::searchRecord(const char*tablename, DP condi) {
 	int pageNum =  getPageNum(tablename);
 	string filepath(tablename);
-	filepath = currentBase + "/" + filepath;
+	filepath = "DataBase/" + currentBase + "/" + filepath;
 
 	int fileID = 0;
 	fm->openFile(filepath.c_str(), fileID);
@@ -342,7 +342,7 @@ bool DataManager::hasSameSegVal(TableInfo& tb, const char* tablename, LP pos, DP
 //根据位置和表名获取一条数据
 Data DataManager::getRecordByLP(const char* tablename, LP pos) {
 	string filepath(tablename);
-	filepath = currentBase + "/" + filepath;
+	filepath = "DataBase/" + currentBase + "/" + filepath;
 	int fileID = 0;
 	fm->openFile(filepath.c_str(), fileID);
 	int pageindex = 0;
@@ -391,7 +391,7 @@ TableInfo DataManager::getTableInfo(const char* tablename) {
 int DataManager::getPageNum(const char* tablename) {
 	//获取文件的大小再除以8k即可
 	string filepath(tablename);
-	filepath = currentBase + "/" + filepath;
+	filepath = "DataBase/" + currentBase + "/" + filepath;
 
 	struct stat buf;
 	if(stat(filepath.c_str(), &buf)<0) {
@@ -403,18 +403,21 @@ int DataManager::getPageNum(const char* tablename) {
 
 //加载表的信息，存于tables map并返回
 TableInfo DataManager::loadTableInfo(const char* tablename) {
+	//cout << "enter loadTableInfo" << endl;
 	TableInfo tb;
 	string filepath(tablename);
-	filepath = currentBase + "/" + filepath;
+	filepath = "DataBase/" + currentBase + "/" + filepath;
 	int fileID = 0;
 	fm->openFile(filepath.c_str(), fileID);
 	int pageindex = 0;
-	bm->getPage(fileID, 0, pageindex);
-	Byte* page = (Byte*)bm->addr[pageindex];
+
+	Byte* page = (Byte*)bm->getPage(fileID, 0, pageindex);
 	Byte* temp = page;
+	//cout << "lalala1" << endl;
 	//get FN
 	int fn = 0;
 	fn  =  RecordTool::byte2Int(temp,2);
+	//cout << "fn: " << fn << endl;
 
 
 	//get vn
@@ -422,9 +425,15 @@ TableInfo DataManager::loadTableInfo(const char* tablename) {
 	temp = page;
 	vn =  RecordTool::byte2Int(temp+2,2);
 
+	//cout << "vn: " << vn << endl;
+
+
 	tb.Fname = new string[fn];
 	tb.Vname = new string[vn];
 	tb.Flen = new int[fn];
+	tb.Vlen = new int[vn];
+	tb.keys = new int[vn+fn];
+	tb.types = new int[vn+fn];
 
 
 	//获取定长列名
@@ -434,6 +443,7 @@ TableInfo DataManager::loadTableInfo(const char* tablename) {
 		temp = page;
 		name =  RecordTool::data2Str(Data(temp+off ,24));
 		tb.Fname[i] = string(name);
+		//cout << "fname: " << tb.Fname[i] << endl;
 		off += 24;
 	}
 
@@ -443,6 +453,7 @@ TableInfo DataManager::loadTableInfo(const char* tablename) {
 			temp = page;
 			name =  RecordTool::data2Str(Data(temp+off ,24));
 			tb.Vname[i] = string(name);
+			//cout << "vname: " << tb.Vname[i] << endl;
 			off += 24;
 	}
 
@@ -452,21 +463,158 @@ TableInfo DataManager::loadTableInfo(const char* tablename) {
 		temp = page;
 		t = RecordTool::byte2Int(temp+off,4);
 		tb.Flen[i] = t;
+		//cout << "flen: " << tb.Flen[i] << endl;
 		off += 4;
 	}
 
-	//获取null位图
-	int nlen = ceil(double(tb.FN + tb.VN) / 8);
-	tb.nullMap = new Byte[nlen];
-	for (int i=0; i<nlen; i++) {
-		tb.nullMap[i] = *(page+off);
-		off++;
+	//获取变长数据长度
+	for (int i=0; i<vn; i++) {
+		int t = 0;
+		temp = page;
+		t = RecordTool::byte2Int(temp+off,4);
+		tb.Vlen[i] = t;
+		//cout << "vlen: " << tb.Vlen[i] << endl;
+		off += 4;
+	}
+
+	//获取key数据
+	for (int i=0; i<vn+fn; i++) {
+		int t = 0;
+		temp = page;
+		t = RecordTool::byte2Int(temp+off,1);
+		tb.keys[i] = t;
+		//cout << "keys: " << tb.keys[i] << endl;
+		off += 1;
+	}
+
+	//获取types数据
+	for (int i=0; i<vn+fn; i++) {
+		int t = 0;
+		temp = page;
+		t = RecordTool::byte2Int(temp+off,1);
+		tb.types[i] = t;
+		//cout << "types: " << tb.types[i] << endl;
+		off += 1;
 	}
 
 	tb.FN = fn;
 	tb.VN = vn;
 
+	//获取null位图
+	int nlen = ceil(double(tb.FN + tb.VN) / 8);
+	//cout << "nlen:" << nlen << endl;
+	tb.nullMap = new Byte[nlen];
+	for (int i=0; i<nlen; i++) {
+		tb.nullMap[i] = *(page+off);
+		//cout << "nullmap: " << int(tb.nullMap[i]) << endl;
+		off++;
+	}
+
+
+
 	return tb;
+}
+
+//写入表元信息，供SysManager在创建表时使用
+void DataManager::writeTableInfo(string tableName, TableInfo tb) {
+	string filepath;
+	filepath = "DataBase/" + currentBase + "/" + tableName;
+	int fileID = 0;
+	fm->openFile(filepath.c_str(), fileID);
+	int pageindex = 0;
+	bm->getPage(fileID, 0, pageindex);
+	Byte* page = (Byte*)bm->addr[pageindex];
+
+	//计算表元信息大小
+	int metaSize = 0;
+	metaSize = 4 + 24*tb.FN + 24*tb.VN + 4*tb.FN + 4*tb.VN + 2*(tb.FN+tb.VN) + ceil(double(tb.FN+tb.VN)/8);
+
+	Byte metaData[metaSize];
+	for (int i=0; i<metaSize; i++) {
+		metaData[i] &= 0x00;
+	}
+	Byte* temp = NULL;
+
+	//set FN
+	temp = (Byte*)&tb.FN;
+	metaData[0] = *temp++;
+	metaData[1] = *temp;
+
+
+	//set vn
+	temp = (Byte*)&tb.VN;
+	metaData[2] = *temp++;
+	metaData[3] = *temp;
+
+	int off = 4;
+	//设置定长列名
+	for (int i=0; i<tb.FN; i++) {
+		temp = (Byte*)tb.Fname[i].data();
+		for (int j=0; j<tb.Fname[i].length(); j++) {
+			metaData[off+j] = *temp++;
+		}
+		off += 24;
+	}
+
+	//设置变长列名
+	for (int i=0; i<tb.VN; i++) {
+		temp = (Byte*)tb.Vname[i].data();
+		for (int j=0; j<tb.Vname[i].length(); j++) {
+			metaData[off+j] = *temp++;
+		}
+		off += 24;
+	}
+
+	//设置定长数据长度
+	for (int i=0; i<tb.FN; i++) {
+		temp = (Byte*)&tb.Flen[i];
+		for (int j=0; j<4; j++) {
+			metaData[off+j] = *temp++;
+		}
+		off += 4;
+	}
+
+	//设置变长数据长度
+	for (int i=0; i<tb.VN; i++) {
+		temp = (Byte*)&tb.Vlen[i];
+		for (int j=0; j<4; j++) {
+			metaData[off+j] = *temp++;
+		}
+		off += 4;
+	}
+
+	//设置key数据
+	for (int i=0; i<tb.VN+tb.FN; i++) {
+		temp = (Byte*)&tb.keys[i];
+		metaData[off] = *temp;
+		off += 1;
+	}
+
+	//设置types数据
+	for (int i=0; i<tb.VN+tb.FN; i++) {
+		temp = (Byte*)&tb.types[i];
+		metaData[off] = *temp;
+		off += 1;
+	}
+
+	//设置null位图
+	int nlen = ceil(double(tb.FN + tb.VN) / 8);
+	for (int i=0; i<nlen; i++) {
+		metaData[off] = tb.nullMap[i];
+
+		off++;
+	}
+	//cout << "metaSize: " << metaSize << endl;
+	//cout << "off: " << off << endl;
+	assert(off == metaSize);
+	//写入数据
+	for (int i=0; i<metaSize; i++) {
+		page[i] = metaData[i];
+	}
+	bm->markDirty(pageindex);
+	bm->writeBack(pageindex);
+
+
 }
 
 //无效化tables中信息

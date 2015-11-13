@@ -14,7 +14,7 @@ using namespace std;
 
 
 
-int main() {
+//int main() {
 	/*FileManager* fm = new FileManager();
 	BufPageManager* bpm = new BufPageManager(fm);
 	fm->createFile("testfile.txt"); //新建文件
@@ -62,9 +62,9 @@ int main() {
 	//dm.createFile("yxy/text");
 	//dm.deleteFile("yxy/text");
 
-	DataManager* dm = new DataManager();
-	SysManager sm(dm);
-	cout << sm.useDatabase("test1") << endl;
+	//DataManager* dm = new DataManager();
+	//SysManager sm(dm);
+	//cout << sm.useDatabase("test1") << endl;
 	//cout << dm->getCurrentDBName() << endl;
 	/*cout << sm.createDatabase("test1") << endl;
 	cout << sm.createDatabase("test2") << endl;
@@ -86,7 +86,7 @@ int main() {
 	for (int i=0; i<tbs.size(); i++) {
 		cout << tbs[i] << endl;
 	}*/
-	cout << sm.dropTable("table2") << endl;
+	//cout << sm.dropTable("table2") << endl;
 
-	return 0;
-}
+	//return 0;
+//}

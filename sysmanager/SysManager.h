@@ -79,7 +79,7 @@ public:
 
 	/*
 	 * 创建表
-	 * 返回1为创建成功，0为失败
+	 * 返回1为创建成功，0为表已存在，-1为尚未选中任何database
 	 */
 	int createTable(string tableName, vector<FieldInfo> tb);
 

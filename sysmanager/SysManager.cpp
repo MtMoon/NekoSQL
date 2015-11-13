@@ -218,12 +218,14 @@ int SysManager::dropTable(string tbName) {
  * flag:1 成功 0 表不存在 -1 尚未选中任何database
  */
 vector<FieldInfo> SysManager::descTable(string tableName, int& flag) {
+
 	vector<FieldInfo> ans;
 	flag = 1;
 	if (dataManager->getCurrentDBName() == "") {
 		flag = -1;
 		return ans;
 	}
+
 
 	string filepath = "DataBase/" + dataManager->getCurrentDBName() + "/" + tableName;
 
@@ -232,14 +234,124 @@ vector<FieldInfo> SysManager::descTable(string tableName, int& flag) {
 		return ans;
 	}
 
+
 	//获取表的信息
 	TableInfo tb = dataManager->getTableInfo(tableName.data());
 
+	//cout << "lalala" << endl;
 
+	//获取定长字段信息
+	for (int i=0; i<tb.FN; i++) {
+		FieldInfo fi;
+		fi.fieldName = tb.Fname[i];
+		fi.fieldType = tb.types[i];
+		fi.fieldSize = tb.Flen[i];
+		fi.ifNull = (tb.nullMap[i/8] >> (i%8))&1;
+		//cout << "null f: " << (int)((tb.nullMap[i/8] >> (i%8))&1);
+		fi.key = tb.keys[i];
+		ans.push_back(fi);
+	}
 
-
+	//获取变长字段信息
+	for (int i=0; i<tb.VN; i++) {
+			FieldInfo fi;
+			fi.fieldName = tb.Vname[i];
+			fi.fieldType = tb.types[tb.FN+i];
+			fi.fieldSize = tb.Vlen[i];
+			int which = tb.FN + i;
+			fi.ifNull = (tb.nullMap[which/8] >> (which%8))&1;
+			//cout << "null v: " << (int)((tb.nullMap[which/8] >> (which%8))&1);
+			fi.key = tb.keys[tb.FN+i];
+			ans.push_back(fi);
+	}
 
 	return ans;
+
+}
+
+/*
+ * 创建表
+ * 返回1为创建成功，0为表已存在，-1为尚未选中任何database
+ */
+int SysManager::createTable(string tableName, vector<FieldInfo> tbvec) {
+	if (dataManager->getCurrentDBName() == "") {
+		return -1;
+	}
+
+	string filepath = "DataBase/" + dataManager->getCurrentDBName() + "/" + tableName;
+
+	if (is_file_exist(filepath.data()) == 0) {
+		return 0;
+	}
+
+	//创建文件
+	if (!dataManager->createFile(filepath.data())) {
+		return -2;
+	}
+
+	//将表信息格式化为TableInfo
+	TableInfo tb;
+
+	tb.FN = 0;
+	tb.VN = 0;
+	for (int i=0; i<tbvec.size(); i++) {
+		if (tbvec[i].fieldType == 2) {
+			tb.VN++;
+		} else {
+			tb.FN++;
+		}
+	}
+
+	tb.Flen = new int[tb.FN];
+	tb.Fname = new string[tb.FN];
+
+	tb.Vlen = new int[tb.VN];
+	tb.Vname = new string[tb.VN];
+
+	tb.keys = new int[tb.VN+tb.FN];
+	tb.types = new int[tb.VN+tb.FN];
+
+	int fc = 0;
+	int vc = 0;
+
+	int nlen = ceil(double(tb.FN+tb.VN)/8);
+	tb.nullMap = new Byte[nlen];
+
+	for (int i=0; i<tbvec.size(); i++) {
+			if (tbvec[i].fieldType == 2) { //变长varchar
+				tb.Vname[vc] = tbvec[i].fieldName;
+				tb.Vlen[vc] = tbvec[i].fieldSize;
+				tb.types[tb.FN+vc] = tbvec[i].fieldType;
+				tb.keys[tb.FN+vc] = tbvec[i].key;
+
+				int which = tb.FN + vc;
+				int ifnull = 0;
+				if (tbvec[i].ifNull) {
+					ifnull = 1;
+				}
+				tb.nullMap[which/8] |= (ifnull<<(which%8));
+				vc++;
+
+			} else { //定长字段
+				tb.Fname[fc] = tbvec[i].fieldName;
+				tb.Flen[fc] = tbvec[i].fieldSize;
+				tb.types[fc] = tbvec[i].fieldType;
+				tb.keys[fc] = tbvec[i].key;
+
+				int which = fc;
+				int ifnull = 0;
+				if (tbvec[i].ifNull) {
+					ifnull = 1;
+				}
+				tb.nullMap[which/8] |= (ifnull<<(which%8));
+				fc++;
+			}
+	}
+	//cout << "nullmap: " << int(tb.nullMap[0]) << endl;
+
+	dataManager->writeTableInfo(tableName, tb);
+	return 1;
+
 
 }
 

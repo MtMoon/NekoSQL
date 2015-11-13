@@ -62,6 +62,9 @@ public:
 	//工具函数
 	TableInfo getTableInfo(const char* tablename);
 
+	//写入表元信息，供SysManager在创建表时使用
+	void writeTableInfo(string tableName, TableInfo tb);
+
 	//更上层的接口函数
 	void setDatabase(string dirname); 	//切换数据库目录
 	string getCurrentDBName(); //获取当前使用的数据库名
