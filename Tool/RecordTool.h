@@ -29,7 +29,7 @@ typedef pair<int,int> LP; //location air 用以定位一条数据记录，first�
  *定义一个表的固定基本信息
  *这部分信息存在表对应文件的第一页
  *注意，会变化的信息，如表中页数，不在此结构体中保存
- *Attention! 2015.11.13 增加Vlen和keys
+ *Attention! 2015.11.13 增加Vlen,keys和type
  */
 struct tableinfo {
 	int FN; // fixed-length column num
@@ -39,6 +39,7 @@ struct tableinfo {
 	int*  Flen; //定长数据长度
 	int* Vlen; //变长数据的最大长度
 	int* keys; //每个字段的键类型 0为不是key，1为一般key，2为primary key 参照下面的fieldInfo
+	int* types; //各个字段的类型  目前：0 int 1 char 2 varchar，其余非法
 	Byte* nullMap;
 };
 
