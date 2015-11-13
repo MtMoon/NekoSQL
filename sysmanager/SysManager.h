@@ -60,8 +60,9 @@ public:
 	/**
 	  * 列出所有表的名字
 	  * return: 当无表时，返回vector 内数据为空
+	  * flag:1 成功 0 当前database中无表 -1 尚未选中任何database
 	  */
-	vector<string> showTables();
+	vector<string> showTables(int& flag);
 
 	/**
 	  * para: table name
@@ -72,8 +73,9 @@ public:
 	/**
 	 * 显示一个表的字段信息
 	 * 当表不存在时，返回的vector 内数据为空
+	 * flag:1 成功 0 表不存在 -1 尚未选中任何database
 	 */
-	vector<FieldInfo> descTable(string tableName);
+	vector<FieldInfo> descTable(string tableName, int& flag);
 
 	/*
 	 * 创建表

@@ -130,4 +130,15 @@ vector<string> SysManager::showDatabases() {
 	return ans;
 }
 
+//表操作
+
+/**
+ * 列出所有表的名字
+ * return: 当无表时，返回vector 内数据为空
+ * flag:1 成功 0 当前database中无表 -1 尚未选中任何database
+*/
+vector<string> SysManager::showTables(int& flag) {
+
+}
+
 
