@@ -25,6 +25,7 @@ C_UPPER_DEPS :=
 SUBDIRS := \
 utils \
 . \
+sysmanager \
 datamanager \
 Tool \
 

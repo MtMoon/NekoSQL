@@ -6,7 +6,8 @@ test.d: ../test.cpp ../bufmanager/BufPageManager.h \
  ../datamanager/DataManager.h \
  ../datamanager/../bufmanager/BufPageManager.h \
  ../datamanager/../Tool/RecordTool.h \
- ../datamanager/../Tool/../utils/pagedef.h
+ ../datamanager/../Tool/../utils/pagedef.h ../sysmanager/SysManager.h \
+ ../sysmanager/../datamanager/DataManager.h
 
 ../bufmanager/BufPageManager.h:
 
@@ -33,3 +34,7 @@ test.d: ../test.cpp ../bufmanager/BufPageManager.h \
 ../datamanager/../Tool/RecordTool.h:
 
 ../datamanager/../Tool/../utils/pagedef.h:
+
+../sysmanager/SysManager.h:
+
+../sysmanager/../datamanager/DataManager.h:

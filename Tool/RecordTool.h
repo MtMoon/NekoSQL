@@ -39,7 +39,23 @@ struct tableinfo {
 	Byte* nullMap;
 };
 
+
 typedef struct tableinfo TableInfo;
+
+/**
+ *定义一个字段的信息
+ */
+struct fieldinfo {
+	string fieldName; //字段名
+	int fieldType; //字段类型目前：0 int 1 char 2 varchar，其余非法
+	int fieldSize; //字段byte数
+	bool ifNull; //是否能够为null
+	int key; //0为不是key，1为一般key，2为primary key
+	//这里暂时不支持default
+
+};
+
+typedef struct fieldinfo FieldInfo;
 
 class RecordTool {
 public:

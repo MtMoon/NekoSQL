@@ -6,6 +6,7 @@
  */
 #include "bufmanager/BufPageManager.h"
 #include "datamanager/DataManager.h"
+#include "sysmanager/SysManager.h"
 #include <iostream>
 #include <iomanip>
 #include <cstring>
@@ -51,11 +52,6 @@ int main() {
 	A |= (1<<3);
 	printf("%#x\n",A);  // 按16进制输出*/
 	//cout << strlen(str) << endl;
-	char str[10] = "lalala!";
-	char* s = str;
-	cout << *s++ << endl;
-	cout << *s++ << endl;
-	cout << str << endl;
 	//d = RecordTool::str2Data(str, strlen(str));
 	//cout << d.second << endl;
 	//cout << RecordTool::data2Str(d) << endl;
@@ -65,6 +61,22 @@ int main() {
 	//cout << dm.getPageNum("lalala") << endl;
 	//dm.createFile("yxy/text");
 	//dm.deleteFile("yxy/text");
+
+	DataManager* dm = new DataManager();
+	SysManager sm(dm);
+	cout << sm.createDatabase("test1") << endl;
+	cout << sm.createDatabase("test2") << endl;
+
+	sm.useDatabase("test1");
+	cout << dm->getCurrentDBName() << endl;
+
+	sm.useDatabase("test2");
+	cout << dm->getCurrentDBName() << endl;
+
+	vector<string> dbs = sm.showDatabases();
+	for (int i=0; i<dbs.size(); i++) {
+		cout << dbs[i] << endl;
+	}
 
 	return 0;
 }
