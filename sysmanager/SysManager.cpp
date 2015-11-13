@@ -10,6 +10,7 @@
 SysManager::SysManager(DataManager* dm) {
 	assert(dm != NULL);
 	this->dataManager = dm;
+	readDatabases();
 }
 
 SysManager::~SysManager() {
@@ -49,6 +50,18 @@ int SysManager::is_dir_exist(const char* dirpath) {
 	 }
 
 	 return 0;
+}
+
+int SysManager::is_file_exist(const char* filepath) {
+   if (filepath == NULL) {
+       return -1;
+   }
+
+   if (access(filepath, F_OK) == 0) {
+       return 0;
+   }
+
+   return -1;
 }
 
 //数据库操作函数
@@ -96,8 +109,13 @@ int SysManager::dropDatabase(string dbName) {
 			}
 		}
 	}
+	closedir(dir);
 
 	if ( rmdir(path.data()) == 0) {
+		if (dbName == dataManager->getCurrentDBName()) {
+			dataManager->setDatabase("");
+		}
+
 		readDatabases();
 		return 1;
 	}
@@ -135,9 +153,93 @@ vector<string> SysManager::showDatabases() {
 /**
  * 列出所有表的名字
  * return: 当无表时，返回vector 内数据为空
- * flag:1 成功 0 当前database中无表 -1 尚未选中任何database
+ * flag:1 成功 0 当前database中无表 -1 尚未选中任何database -2其他错误
 */
 vector<string> SysManager::showTables(int& flag) {
+	vector<string> ans;
+	flag = 0;
+	if (dataManager->getCurrentDBName() == "") {
+		flag = -1;
+		return ans;
+	}
+
+	string path = "DataBase/" + dataManager->getCurrentDBName();
+	if (is_dir_exist(path.data()) != 0) {
+		flag = -2;
+		return ans;
+	}
+
+	DIR *dir;
+	struct dirent  *ptr;
+	dir = opendir(path.data());
+	while((ptr = readdir(dir)) != NULL) {
+		if (ptr->d_type == 8) {
+			ans.push_back(string(ptr->d_name));
+		}
+	}
+	closedir(dir);
+	if (!ans.empty()) {
+		flag = 0;
+	}
+	return ans;
+}
+
+
+/**
+ * para: table name
+ * return: 1 drop successful; 0 table not exists;-1 no selected database
+ */
+int SysManager::dropTable(string tbName) {
+	if (dataManager->getCurrentDBName() == "") {
+		return -1;
+	}
+
+	string filepath = "DataBase/" + dataManager->getCurrentDBName() + "/" + tbName;
+
+	if (is_file_exist(filepath.data()) == -1) {
+		return 0;
+	}
+
+	if (!dataManager->deleteFile(filepath.data())) {
+		return -2;
+	}
+
+	//无效化dataManager中缓存的表信息
+	dataManager->invalidTbMap(tbName);
+
+	return 1;
+
+
+}
+
+/**
+ * 显示一个表的字段信息
+ * 当表不存在时，返回的vector 内数据为空
+ * flag:1 成功 0 表不存在 -1 尚未选中任何database
+ */
+vector<FieldInfo> SysManager::descTable(string tableName, int& flag) {
+	vector<FieldInfo> ans;
+	flag = 1;
+	if (dataManager->getCurrentDBName() == "") {
+		flag = -1;
+		return ans;
+	}
+
+	string filepath = "DataBase/" + dataManager->getCurrentDBName() + "/" + tableName;
+
+	if (is_file_exist(filepath.data()) == -1) {
+		flag = 0;
+		return ans;
+	}
+
+	//获取表的信息
+	TableInfo tb = dataManager->getTableInfo(tableName.data());
+
+
+
+
+
+	return ans;
 
 }
 

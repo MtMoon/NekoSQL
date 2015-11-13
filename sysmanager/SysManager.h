@@ -60,13 +60,13 @@ public:
 	/**
 	  * 列出所有表的名字
 	  * return: 当无表时，返回vector 内数据为空
-	  * flag:1 成功 0 当前database中无表 -1 尚未选中任何database
+	  * flag:1 成功 0 当前database中无表 -1 尚未选中任何database -2 其他错误
 	  */
 	vector<string> showTables(int& flag);
 
 	/**
 	  * para: table name
-	  * return: 1 change successful; 0 table not exists;-1 other error
+	  * return: 1 drop successful; 0 table not exists;-1 no selected database
 	  */
 	int dropTable(string tbName);
 
@@ -93,6 +93,7 @@ private:
       */
 	void readDatabases();
 	int is_dir_exist(const char* filepath);
+	int is_file_exist(const char* filepath);
 
 	map<string,int> dataBaseDic; //存储所有的database信息
 

@@ -64,7 +64,9 @@ int main() {
 
 	DataManager* dm = new DataManager();
 	SysManager sm(dm);
-	cout << sm.createDatabase("test1") << endl;
+	cout << sm.useDatabase("test1") << endl;
+	//cout << dm->getCurrentDBName() << endl;
+	/*cout << sm.createDatabase("test1") << endl;
 	cout << sm.createDatabase("test2") << endl;
 
 	sm.useDatabase("test1");
@@ -76,7 +78,15 @@ int main() {
 	vector<string> dbs = sm.showDatabases();
 	for (int i=0; i<dbs.size(); i++) {
 		cout << dbs[i] << endl;
-	}
+	}*/
+
+	/*int flag = -1;
+	vector<string> tbs = sm.showTables(flag);
+	cout << "flag: " << flag << endl;
+	for (int i=0; i<tbs.size(); i++) {
+		cout << tbs[i] << endl;
+	}*/
+	cout << sm.dropTable("table2") << endl;
 
 	return 0;
 }

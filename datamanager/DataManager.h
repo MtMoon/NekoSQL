@@ -65,6 +65,7 @@ public:
 	//更上层的接口函数
 	void setDatabase(string dirname); 	//切换数据库目录
 	string getCurrentDBName(); //获取当前使用的数据库名
+	void invalidTbMap(string tbName); //无效化tables中存的表信息
 
 
 private:

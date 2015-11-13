@@ -469,3 +469,11 @@ TableInfo DataManager::loadTableInfo(const char* tablename) {
 	return tb;
 }
 
+//无效化tables中信息
+void DataManager::invalidTbMap(string tbName) {
+	map<string, TableInfo>::iterator it = tables.find(tbName);
+	if (it != tables.end()) {
+		tables.erase(it);
+	}
+}
+
