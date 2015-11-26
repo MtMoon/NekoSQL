@@ -9,6 +9,8 @@ datamanager/DataManager.d: ../datamanager/DataManager.cpp \
  ../datamanager/../bufmanager/../utils/MyLinkList.h \
  ../datamanager/../bufmanager/../utils/pagedef.h \
  ../datamanager/../bufmanager/../fileio/FileManager.h \
+ ../datamanager/../bufmanager/../fileio/../utils/pagedef.h \
+ ../datamanager/../bufmanager/../fileio/../utils/MyBitMap.h \
  ../datamanager/../Tool/RecordTool.h \
  ../datamanager/../Tool/../utils/pagedef.h
 
@@ -31,6 +33,10 @@ datamanager/DataManager.d: ../datamanager/DataManager.cpp \
 ../datamanager/../bufmanager/../utils/pagedef.h:
 
 ../datamanager/../bufmanager/../fileio/FileManager.h:
+
+../datamanager/../bufmanager/../fileio/../utils/pagedef.h:
+
+../datamanager/../bufmanager/../fileio/../utils/MyBitMap.h:
 
 ../datamanager/../Tool/RecordTool.h:
 

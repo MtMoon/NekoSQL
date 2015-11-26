@@ -13,7 +13,7 @@
 #include <cstring>
 using namespace std;
 
-int main() {
+/*int main() {
 	DataManager* dm = new DataManager();
 	SysManager sm(dm);
 	cout << "useDatabase: " << sm.useDatabase("test1") << endl;
@@ -54,6 +54,6 @@ int main() {
 	}
 
 	return 0;
-}
+}*/
 
 

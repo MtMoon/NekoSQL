@@ -7,6 +7,7 @@
 
 #include "RecordTool.h"
 
+using namespace std;
 
 //数据记录行采用SQL Server2000的数据行格式
 //DP的顺序应与TableInfo中一致 先顺序FN个定长数据，再顺序VN个变长数据
@@ -189,8 +190,13 @@ int RecordTool::byte2Int(Byte* byte, int size) {
 	int c = 0;
 	Byte* temp = (Byte*)&c;
 	for (int i=0; i<size; i++) {
-		*temp++ = byte[i];
+		temp[i] = byte[i];
 	}
+	Byte token = '\x80';
+	Byte ans = byte[size-1]&token;
+	if (ans != '\0')
+		for (int i = size; i < 4; i++)
+			temp[i] = '\xff';
 	return c;
 }
 
@@ -209,3 +215,48 @@ LP RecordTool::getSegOffset(TableInfo& tb, string& segname) {
 	return LP(off+5, order);
 }
 
+
+/******************************************************/
+
+void RecordTool::copyByte(Byte* dst, const Byte* src, int len)
+{
+	for (int i = 0; i < len; i++)
+		dst[i] = src[i];
+}
+
+void RecordTool::int2Byte(Byte* byte, int size, int num)
+{
+	if (size < 1 || size > 4)
+		return;
+	Byte* temp = (Byte*)&num;
+	for (int i = 0; i < size; i++)
+		byte[i] = temp[i];
+}
+
+int RecordTool::getRecordLen(Byte* byte)
+{
+	if (byte == NULL)
+		return -1;
+	return byte2Int(byte+1, 2);	
+}
+
+/*用于打印信息的工具函数*/
+/*****************************************************************/
+//在命令行打印表信息
+string RecordTool::printTableInfo(const TableInfo& tb) {
+	/*stringstream ss;
+	ss.clear();
+	cout << "定长列信息：" << endl;
+	for (int i=0; i<tb.FN; i++) {
+		int a = i/8;
+		int b = i%8;
+		std::cout << "field name: " << tb.Fname[i] << " field size: " << tb.Flen[i] << " field type: " << tb.types[i] << " field key: " << tb.keys[i] << " field null: " << (（tb.nullMap[a]>>b)  & 1)<< std::endl;
+	}
+
+	std::cout << "变长信息：" << std::endl;
+	for (int i=0; i<tb.VN; i++) {
+			int a = (tb.FN+i)/8;
+			int b = (tb.FN+i)%8;
+			std::cout << "field name: " << tb.Vname[i] << " field size: " << tb.Vlen[i] << " field type: " << tb.types[tb.FN+i] << " field key: " << tb.keys[tb.FN+i] << " field null: " << ((tb.nullMap[a]>>b)  & 1)<< std::endl;
+	}*/
+}

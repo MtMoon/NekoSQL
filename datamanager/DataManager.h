@@ -46,6 +46,7 @@ public:
 
 	//插入一条记录
 	bool insertRecord(const char* tablename, DP data[], const int size);
+	//bool insertRecord(const char* tablename, const Byte* record, int len);
 
 	//重载函数 直接以位置和Byte流插入
 	bool insertRecord(const char* tablename, Data data, LP pos);
@@ -71,7 +72,7 @@ public:
 	void invalidTbMap(string tbName); //无效化tables中存的表信息
 
 
-private:
+//private:
 	BufPageManager* bm;
 	FileManager* fm;
 	string currentBase; //当前使用的数据库，即目录名
@@ -89,14 +90,9 @@ private:
 	Data getRecordByLP(const char* tablename, LP pos); //根据位置和表名获取一条数据
 	bool hasSameSegVal(TableInfo& tb, const char* tablename, LP pos, DP condi); //判断某条数据的某个字段是否满足特定值
 
-
-
-
-
-
-
-
-
+	bool newEmptySpecialPage(const char* tablename);	
+	int newNormalPage(const char* tablename, int pageID);
+	void pageInfo(const char* tablename, int pageID);
 };
 
 

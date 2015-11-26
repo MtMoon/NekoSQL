@@ -10,6 +10,7 @@
 #define RECORDTOOL_H_
 
 #include <string>
+#include <sstream>
 #include <cstdlib>
 #include <utility>
 #include <assert.h>
@@ -78,6 +79,15 @@ public:
 
 	//获取某个定长字段的位置 first为其在数据行中的起始位置，second表示其列序号
 	static LP getSegOffset(TableInfo& tb, string& segname);
+
+	static void copyByte(Byte* dst, const Byte* src, int len);
+	static void int2Byte(Byte* byte, int size, int num);
+	static int getRecordLen(Byte* byte);
+
+	//打印用的工具函数
+
+	//在命令行打印表信息
+	static string printTableInfo(const TableInfo& tb);
 };
 
 

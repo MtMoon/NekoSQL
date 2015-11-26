@@ -9,6 +9,8 @@ sysmanager/SysManager.d: ../sysmanager/SysManager.cpp \
  ../sysmanager/../datamanager/../bufmanager/../utils/MyLinkList.h \
  ../sysmanager/../datamanager/../bufmanager/../utils/pagedef.h \
  ../sysmanager/../datamanager/../bufmanager/../fileio/FileManager.h \
+ ../sysmanager/../datamanager/../bufmanager/../fileio/../utils/pagedef.h \
+ ../sysmanager/../datamanager/../bufmanager/../fileio/../utils/MyBitMap.h \
  ../sysmanager/../datamanager/../Tool/RecordTool.h \
  ../sysmanager/../datamanager/../Tool/../utils/pagedef.h
 
@@ -33,6 +35,10 @@ sysmanager/SysManager.d: ../sysmanager/SysManager.cpp \
 ../sysmanager/../datamanager/../bufmanager/../utils/pagedef.h:
 
 ../sysmanager/../datamanager/../bufmanager/../fileio/FileManager.h:
+
+../sysmanager/../datamanager/../bufmanager/../fileio/../utils/pagedef.h:
+
+../sysmanager/../datamanager/../bufmanager/../fileio/../utils/MyBitMap.h:
 
 ../sysmanager/../datamanager/../Tool/RecordTool.h:
 

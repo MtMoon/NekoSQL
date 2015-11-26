@@ -1,4 +1,4 @@
-SysManagerTest.d: ../SysManagerTest.cpp ../bufmanager/BufPageManager.h \
+DataManagerTest.d: ../DataManagerTest.cpp ../bufmanager/BufPageManager.h \
  ../bufmanager/../utils/MyHashMap.h ../bufmanager/../utils/pagedef.h \
  ../bufmanager/../utils/MyLinkList.h ../bufmanager/../utils/MyBitMap.h \
  ../bufmanager/FindReplace.h ../bufmanager/../utils/MyLinkList.h \

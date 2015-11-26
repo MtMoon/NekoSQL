@@ -38,7 +38,11 @@ string DataManager::getCurrentDBName() {
 //新建文件, 文件名应包含database dir name
 //新建成功返回true 否则返回false
 bool DataManager::createFile(const char* filename) {
-	return fm->createFile(filename);
+	bool success = fm->createFile(filename);
+	int len = currentBase.length()+1;
+	string newFilename(filename+len+9);
+	newEmptySpecialPage(newFilename.c_str());
+	return success;
 }
 
 //删除文件, 文件名应包含database dir name
@@ -75,12 +79,16 @@ bool DataManager::closeFile(const char* filename) {
 //数据类型的对应,是否可以为NULL需在上层检查
 //若要支持NULL值字段不在sql语句中显示写出，需要上层转换
 bool DataManager::insertRecord(const char* tablename, DP data[], const int size) {
+	
 	int len = 0; //数据记录长度
 	Byte* record = NULL;
 	TableInfo tb = getTableInfo(tablename);
 	//生成数据记录
 	record = RecordTool::makeRecord(tb, len, data, size);
 
+
+	if (len > PAGE_SIZE-6)
+		return false;
 	// 寻找合适的页插入
 	int pageNum =  getPageNum(tablename);
 	string filepath(tablename);
@@ -91,35 +99,163 @@ bool DataManager::insertRecord(const char* tablename, DP data[], const int size)
 
 	//遍历除了第一页之外的各个页
 	//获取有空余byte的页的index
-	BufType page = new unsigned int[2048];
-	int pageindex = 0;
+	int pageindex = 0, pageID = -1;
 	for (int i=1; i<pageNum; i++) {
 		bm->getPage(fileID, i, pageindex);
-		if (getPageLeftSize(pageindex) >=  len) {
+		if (getPageLeftSize(pageindex) >= len+2) {
+			pageID = i;	
 			break;
 		}
 	}
 
-	//写入数据
-
-	//获取槽数
-
-
-
-	//修改剩余字节数
-
+	if (pageID != -1)
+	{
+		Byte* buf = (Byte*)(bm->getPage(fileID, pageID, pageindex));
+		int spaceLeft = RecordTool::byte2Int(buf, 2);
+		int slotNum = RecordTool::byte2Int(buf+2, 2);
+		int start = PAGE_SIZE-slotNum*2-spaceLeft;
+		bool flag = false;
+		for (int i = 0; i < slotNum; i++)
+		{
+			int slotOffset = PAGE_SIZE-(i+1)*2;
+			int slotVal = RecordTool::byte2Int(buf+slotOffset, 2);
+			if (slotVal == -1)
+			{
+				RecordTool::int2Byte(buf+slotOffset, 2, start);
+				RecordTool::copyByte(buf+start, record, len);
+				RecordTool::int2Byte(buf, 2, spaceLeft-len);
+				flag = true;
+				break;
+			}
+		}
+		if (!flag)
+		{
+			RecordTool::int2Byte(buf+PAGE_SIZE-(slotNum+1)*2, 2, start);
+			RecordTool::copyByte(buf+start, record, len);
+			RecordTool::int2Byte(buf, 2 ,spaceLeft-len-2);
+			RecordTool::int2Byte(buf+2, 2, slotNum+1);
+		}
+	}
+	else
+	{
+		pageID = newNormalPage(tablename, fileID);
+		Byte* buf = (Byte*)(bm->getPage(fileID, pageID, pageindex));
+		int spaceLeft = RecordTool::byte2Int(buf, 2);
+		RecordTool::int2Byte(buf+PAGE_SIZE-2, 2, 4);
+		RecordTool::copyByte(buf+4, record, len);
+		RecordTool::int2Byte(buf, 2, spaceLeft-len-2);
+		RecordTool::int2Byte(buf+2, 2, 1);
+	}
+	bm->markDirty(pageindex);
+	bm->writeBack(pageindex);
+	fm->closeFile(fileID);
 	return true;
-
-
 }
 
 //LP为插入的位置
 //data的first为整条记录的Byte数组，second为该Byte数组的长度
 bool DataManager::insertRecord(const char* tablename, Data data, LP pos) {
+	int pageNum =  getPageNum(tablename);
+	string filepath(tablename);
+	filepath = "DataBase/" + currentBase + "/" + filepath;
+	int fileID = 0;
+	fm->openFile(filepath.c_str(), fileID);
+
+	int pageID = pos.first, slotID = pos.second;
+	if (pageID < 1 || pageID >= pageNum)
+	{
+		fm->closeFile(fileID);
+		return false;
+	}
+	int pageindex;
+	Byte* buf = (Byte*)(bm->getPage(fileID, pageID, pageindex));
+	int spaceLeft = RecordTool::byte2Int(buf, 2);
+	int slotNum = RecordTool::byte2Int(buf+2, 2);
+	if (data.second > spaceLeft)
+	{
+		fm->closeFile(fileID);
+		return false;
+	}
+	if (slotID < 0 || slotID >= slotNum)
+	{
+		fm->closeFile(fileID);
+		return false;
+	}
+	int slotOffset = PAGE_SIZE-(slotID+1)*2;
+	int slotVal = RecordTool::byte2Int(buf+slotOffset, 2);
+	if (slotVal != -1)
+	{
+		fm->closeFile(fileID);
+		return false;
+	}
+
+	int start = PAGE_SIZE-slotNum*2-spaceLeft;
+	RecordTool::int2Byte(buf+slotOffset, 2, start);
+	RecordTool::copyByte(buf+start, data.first, data.second);
+	RecordTool::int2Byte(buf, 2, spaceLeft-data.second);
+	
+	bm->markDirty(pageindex);
+	bm->writeBack(pageindex);
+	fm->closeFile(fileID);
 	return true;
 }
 
 bool DataManager::deleteRecord(const char* tablename, LP pos) {
+	int pageNum =  getPageNum(tablename);
+	string filepath(tablename);
+	filepath = "DataBase/" + currentBase + "/" + filepath;
+	int fileID = 0;
+	fm->openFile(filepath.c_str(), fileID);
+
+	int pageID = pos.first, slotID = pos.second;
+	if (pageID < 1 || pageID >= pageNum)
+	{
+		fm->closeFile(fileID);
+		return false;
+	}
+	int pageindex;
+	Byte* buf = (Byte*)(bm->getPage(fileID, pageID, pageindex));
+	int spaceLeft = RecordTool::byte2Int(buf, 2);
+	int slotNum = RecordTool::byte2Int(buf+2, 2);
+	if (slotID < 0 || slotID >= slotNum)
+	{
+		fm->closeFile(fileID);
+		return false;
+	}
+	int slotOffset = PAGE_SIZE-(slotID+1)*2;
+	int slotVal = RecordTool::byte2Int(buf+slotOffset, 2);
+	if (slotVal == -1)
+	{
+		fm->closeFile(fileID);
+		return false;
+	}
+
+	int newStart = slotVal;
+	int len = RecordTool::getRecordLen(buf+newStart);
+	int start = newStart+len;
+	int maxOffset = 0;
+	for (int i = 0; i < slotNum; i++)
+	{
+		int tempOffset = PAGE_SIZE-(i+1)*2;
+		int tempVal = RecordTool::byte2Int(buf+tempOffset, 2);
+		if (tempVal != -1 && tempVal > maxOffset)
+			maxOffset = tempVal;
+	}
+	int end = maxOffset + RecordTool::getRecordLen(buf+maxOffset);
+	RecordTool::copyByte(buf+newStart, buf+start, end-start);
+	RecordTool::int2Byte(buf+slotOffset, 2, -1);
+	for (int i = 0; i < slotNum; i++)
+	{
+		int tempOffset = PAGE_SIZE-(i+1)*2;
+		int tempVal = RecordTool::byte2Int(buf+tempOffset, 2);
+		if (tempVal != -1 && tempVal > newStart)
+			RecordTool::int2Byte(buf+tempOffset, 2, tempVal-len);
+	}
+	RecordTool::int2Byte(buf, 2, spaceLeft+len);
+	
+	bm->markDirty(pageindex);
+	bm->writeBack(pageindex);
+	fm->closeFile(fileID);
 	return true;
 }
 
@@ -240,6 +376,8 @@ vector<LP> DataManager::searchRecord(const char*tablename, DP condi) {
 	string filepath(tablename);
 	filepath = "DataBase/" + currentBase + "/" + filepath;
 
+	//cout << "filepath: " << filepath << endl;
+
 	int fileID = 0;
 	fm->openFile(filepath.c_str(), fileID);
 	Byte* temp = NULL;
@@ -249,13 +387,17 @@ vector<LP> DataManager::searchRecord(const char*tablename, DP condi) {
 	int pageindex = 0;
 	vector<LP> vec;
 	TableInfo tb = getTableInfo(tablename);
+
+
 	for (int i=1; i<pageNum; i++) {
 		bm->getPage(fileID, i, pageindex);
+
 		Byte* page = (Byte*)bm->addr[pageindex];
 		//取出这一页的槽数
 		temp = page+2;
 		int slotNum = 0;
 		slotNum = RecordTool::byte2Int(temp, 2);
+		cout << "slot Num: " << slotNum << endl;
 		for (int j=0; j<slotNum; j++) {
 			if (hasSameSegVal(tb, tablename, LP(i,j), condi)) {
 				vec.push_back(LP(i,j));
@@ -271,8 +413,9 @@ bool DataManager::hasSameSegVal(TableInfo& tb, const char* tablename, LP pos, DP
 	Byte* line = NULL;
 	Data d;
 	d = getRecordByLP(tablename, pos);
+
 	line = d.first;
-	bool ans = false;
+	bool ans = true;
 	Byte* temp = NULL;
 
 	if (RecordTool::isVCol(tb, condi.first)) {
@@ -284,6 +427,8 @@ bool DataManager::hasSameSegVal(TableInfo& tb, const char* tablename, LP pos, DP
 				break;
 			}
 		}
+
+		//cout << "col: " << col << endl;
 
 		//获取非变长数据部分长度
 		int nvlen = 9;
@@ -307,7 +452,9 @@ bool DataManager::hasSameSegVal(TableInfo& tb, const char* tablename, LP pos, DP
 
 		int vlen = end-start;
 
+		cout << "vlen: " << vlen << endl;
 		if (vlen != condi.second.second) {
+
 			ans = false;
 			return ans;
 		}
@@ -356,7 +503,8 @@ Data DataManager::getRecordByLP(const char* tablename, LP pos) {
 	int start = 0;
 	Byte* temp = page+PAGE_SIZE-2*(pos.second+1);
 	start = RecordTool::byte2Int(temp, 2);
-
+	cout << "location: " << pos.first << " " << pos.second << endl;
+	cout << "start: " << start << endl;
 	//获取记录长度
 	int len = 0;
 	temp = page+start+1;
@@ -625,3 +773,68 @@ void DataManager::invalidTbMap(string tbName) {
 	}
 }
 
+
+/**********************************************************************/
+bool DataManager::newEmptySpecialPage(const char* tablename)
+{
+	string filepath(tablename);
+	filepath = "DataBase/" + currentBase + "/" + filepath;
+	int fileID;
+	fm->openFile(filepath.c_str(), fileID);
+	int index;
+	bm->allocPage(fileID, 0, index, false);
+	bm->markDirty(index);
+	bm->writeBack(index);
+	fm->closeFile(fileID);
+	return true;
+}
+
+
+int DataManager::newNormalPage(const char* tablename, int fileID)
+{
+	int pageNum = getPageNum(tablename);
+	int index;
+	BufType b = bm->allocPage(fileID, pageNum, index, false);
+	Byte* buf = (Byte*)b;
+	RecordTool::int2Byte(buf, 2, PAGE_SIZE-4);
+	RecordTool::int2Byte(buf+2, 2, 0);
+	bm->markDirty(index);
+	bm->writeBack(index);
+	return pageNum;
+}
+
+
+void DataManager::pageInfo(const char* tablename, int pageID)
+{
+	string filepath(tablename);
+	filepath = "DataBase/" + currentBase + "/" + filepath;
+	int fileID;
+	fm->openFile(filepath.c_str(), fileID);
+	if (pageID < 1 || pageID >= getPageNum(tablename))
+		cout << "invalid pageID" << endl;
+	else
+	{
+		int pageindex;
+		Byte* buf = (Byte*)(bm->getPage(fileID, pageID, pageindex));
+		int spaceLeft = RecordTool::byte2Int(buf, 2);
+		int slotNum = RecordTool::byte2Int(buf+2, 2);
+		cout << "space left:" << spaceLeft << endl;
+		cout << "slot num:" << slotNum << endl;
+		cout << "slot:" << endl;
+		for (int i = 0; i < slotNum; i++)
+		{
+			int offset = PAGE_SIZE-(i+1)*2;
+			int start = RecordTool::byte2Int(buf+offset, 2);
+			cout << start << ':';
+			if (start != -1)
+			{
+				int len = RecordTool::getRecordLen(buf+start);
+				for (int i = 3; i < len; i++)
+					cout << *(buf+start+i);
+			}
+			cout << endl;
+		}
+		
+	}
+	fm->closeFile(fileID);
+}
