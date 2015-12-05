@@ -10,6 +10,7 @@
 #define RECORDTOOL_H_
 
 #include <string>
+#include <cstring>
 #include <sstream>
 #include <cstdlib>
 #include <utility>

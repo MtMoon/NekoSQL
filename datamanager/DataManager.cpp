@@ -86,6 +86,8 @@ bool DataManager::insertRecord(const char* tablename, DP data[], const int size)
 	//生成数据记录
 	record = RecordTool::makeRecord(tb, len, data, size);
 
+	//cout << "insert Record, len: " << len << endl;
+	//cout << "len from byte: " << RecordTool::byte2Int(record+1, 2)  << endl;
 
 	if (len > PAGE_SIZE-6)
 		return false;
@@ -273,6 +275,10 @@ bool DataManager::updateRecord(const char* tablename, LP pos, DP data[], int siz
 	int nvlen = 9; //非变长数据部分的字段
 	int flen = 0;
 	for (int i=0; i<tb.FN; i++) {
+		if (tb.types[i] == 0) {
+			flen += 4;
+			continue;
+		}
 		flen += tb.Flen[i];
 	}
 	nvlen += flen;
@@ -309,58 +315,64 @@ bool DataManager::updateRecord(const char* tablename, LP pos, DP data[], int siz
 	if (flag) { //如果有变长数据
 		//更新变长字段
 
-			Data vdata[tb.VN];
-			int lastpos = nvlen;
-			for (int i=0; i<tb.VN; i++) {
-				int c = 0;
-				temp = d.first+offpos+2*i;
-				c = RecordTool::byte2Int(temp, 2);
-				vdata[i].first = d.first + c;
-				vdata[i].second = c - lastpos;
-				lastpos = c;
-			}
+		Data vdata[tb.VN];
+		int lastpos = nvlen;
+		for (int i=0; i<tb.VN; i++) {
+			int c = 0;
+			temp = d.first+offpos+2*i;
+			c = RecordTool::byte2Int(temp, 2);
+			vdata[i].first = d.first + c;
+			vdata[i].second = c - lastpos;
+			lastpos = c;
+		}
 
-			int vlen = 0;
-			for (int i=0; i<tb.VN; i++) {
-				for (int j=0; j<size; j++) {
-					if (tb.Vname[i] == data[j].first) {
+		int vlen = 0;
+		for (int i=0; i<tb.VN; i++) {
+			for (int j=0; j<size; j++) {
+				if (tb.Vname[i] == data[j].first) {
 
-						//修改NULL位图
-						int nullbyte = nstart + (tb.FN+i) / 8;
-						int whichbit = (tb.FN+i) % 8;
-						*(d.first + nullbyte) |= ~(1<<whichbit);
-
-						vdata[i] = data[i].second;
-						break;
-					}
+					//修改NULL位图
+					int nullbyte = nstart + (tb.FN+i) / 8;
+					int whichbit = (tb.FN+i) % 8;
+					*(d.first + nullbyte) |= ~(1<<whichbit);
+					vdata[i] = data[i].second;
+					break;
 				}
 			}
+		}
 
-			for (int i=0; i<tb.VN; i++) {
-				vlen += vdata[i].second;
-			}
+		for (int i=0; i<tb.VN; i++) {
+			vlen += vdata[i].second;
+		}
 
-			Byte* line = new Byte[vlen+nvlen];
-			temp = d.first;
-			for (int i=0; i<nvlen; i++) { //拷贝非变长数据部分
-				line[i] = *temp++;
-			}
+		Byte* line = new Byte[vlen+nvlen];
+		temp = d.first;
+		for (int i=0; i<nvlen; i++) { //拷贝非变长数据部分
+			line[i] = *temp++;
+		}
 
-			//拷贝变长数据和修改列偏移数组
-			int vstart = nvlen;
-			for (int i=0; i<tb.VN; i++) {
-				for (int j=0; j<vdata[i].second; j++) {
-					line[vstart++] = vdata[i].first[j];
-				}
-				//修改列偏移数组
-				Byte* offstart = line + offpos + 2*i;
-				int c = vstart;
-				Byte* tempc = (Byte*)&c;
-				*offstart++ = tempc[0];
-				*offstart = tempc[1];
+		//修改数据总长度
+		int totalLen = vlen + nvlen;
+		temp = (Byte*)&totalLen;
+		line[1] = *temp++;
+		line[2] = *temp;
+
+		//拷贝变长数据和修改列偏移数组
+		int vstart = nvlen;
+		for (int i=0; i<tb.VN; i++) {
+			for (int j=0; j<vdata[i].second; j++) {
+				line[vstart++] = vdata[i].first[j];
 			}
-			deleteRecord(tablename, pos);
-			ans = insertRecord(tablename, Data(line, vlen+nvlen), pos);
+			//修改列偏移数组
+			Byte* offstart = line + offpos + 2*i;
+			int c = vstart;
+			Byte* tempc = (Byte*)&c;
+			*offstart++ = tempc[0];
+			*offstart = tempc[1];
+		}
+		deleteRecord(tablename, pos);
+		//cout << "in update vlen+nvlen: " << vlen + nvlen << endl;
+		ans = insertRecord(tablename, Data(line, vlen+nvlen), pos);
 	} else {
 			ans = insertRecord(tablename, d, pos);
 	}
@@ -414,6 +426,10 @@ bool DataManager::hasSameSegVal(TableInfo& tb, const char* tablename, LP pos, DP
 	Data d;
 	d = getRecordByLP(tablename, pos);
 
+	if (d.first == NULL && d.second == 0) {
+		return false;
+	}
+
 	line = d.first;
 	bool ans = true;
 	Byte* temp = NULL;
@@ -435,8 +451,14 @@ bool DataManager::hasSameSegVal(TableInfo& tb, const char* tablename, LP pos, DP
 		nvlen += 2*tb.VN;
 		nvlen += ceil(double(tb.FN+tb.VN)/8);
 		for (int i=0; i<tb.FN; i++) {
+			if (tb.types[i] == 0) {
+				nvlen += 4;
+				continue;
+			}
 			nvlen += tb.Flen[i];
 		}
+
+		cout << "nvlen: " << nvlen << endl;
 
 		int start = 0;
 		if (col == 0) {
@@ -449,7 +471,7 @@ bool DataManager::hasSameSegVal(TableInfo& tb, const char* tablename, LP pos, DP
 
 		temp = line+nvlen-2*tb.VN+2*col;
 		int end  = RecordTool::byte2Int(temp, 2);
-
+		//cout << "end: " << endl;
 		int vlen = end-start;
 
 		cout << "vlen: " << vlen << endl;
@@ -487,6 +509,7 @@ bool DataManager::hasSameSegVal(TableInfo& tb, const char* tablename, LP pos, DP
 }
 
 //根据位置和表名获取一条数据
+//当该slot被删除，即start为-1时，返回Data(NULL,0);
 Data DataManager::getRecordByLP(const char* tablename, LP pos) {
 	string filepath(tablename);
 	filepath = "DataBase/" + currentBase + "/" + filepath;
@@ -494,7 +517,7 @@ Data DataManager::getRecordByLP(const char* tablename, LP pos) {
 	fm->openFile(filepath.c_str(), fileID);
 	int pageindex = 0;
 	bm->getPage(fileID, pos.first, pageindex);
-
+	//cout << "pageIndex: " << pageindex << endl;
 	Byte* page = (Byte*)bm->addr[pageindex];
 
 
@@ -505,10 +528,14 @@ Data DataManager::getRecordByLP(const char* tablename, LP pos) {
 	start = RecordTool::byte2Int(temp, 2);
 	cout << "location: " << pos.first << " " << pos.second << endl;
 	cout << "start: " << start << endl;
+	if (start == -1) {
+		return Data(NULL,0);
+	}
 	//获取记录长度
 	int len = 0;
 	temp = page+start+1;
 	len = RecordTool::byte2Int(temp, 2);
+	cout << "len: " << len << endl;
 	Byte* record = new Byte[len];
 	temp = page+start;
 	for (int i=0; i<len; i++) {

@@ -157,9 +157,14 @@ Data RecordTool::str2Data(char* str, int size) {
 	d.second = size;
 	Byte* byte = new Byte[size];
 	Byte* temp = (Byte*)str;
-	for (int i=0; i<size; i++) {
+	int slen = strlen(str);
+	for (int i=0; i<slen; i++) {
 		byte[i] = *temp++;
 	}
+	for (int i=slen; i<size; i++) {
+		byte[i] = 0;
+	}
+
 	d.first = byte;
 	return d;
 }
@@ -188,6 +193,7 @@ char* RecordTool::data2Str(Data d) {
 int RecordTool::byte2Int(Byte* byte, int size) {
 	assert(size>=1 && size <=4);
 	int c = 0;
+	//c &= 0x00;
 	Byte* temp = (Byte*)&c;
 	for (int i=0; i<size; i++) {
 		temp[i] = byte[i];
