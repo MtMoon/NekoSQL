@@ -58,7 +58,9 @@ public:
 	bool deleteRecord(const char* tablename, LP pos);
 
 	//获取属性值满足特定条件的记录
-	vector<LP> searchRecord(const char*tablename, DP condi);
+	 //对某一字段cmpType 0：值等于condi的记录，1：值大于condi的记录，2：值小于condi的记录，3：值为null的记录
+	vector<LP> searchRecord(const char*tablename, ConDP condi, int cmpType);
+	vector<LP> searchRecordInPage(const char* tablename, const int pageindex, ConDP condi, int cmpType); //在某个页内检索
 
 	//工具函数
 	TableInfo getTableInfo(const char* tablename);
@@ -76,6 +78,8 @@ public:
 	BufPageManager* bm;
 	FileManager* fm;
 	string currentBase; //当前使用的数据库，即目录名
+	string currentTable; //当前打开的表
+	int currentFileID; //当前打开的表的id
 
 	//储存已打开的表的信息
 	//每次打开一个表，应先检查是否在map中 不在则需从文件读入
@@ -85,10 +89,13 @@ public:
 	//工具类函数
 	TableInfo loadTableInfo(const char* tablename); //加载表信息
 
+	int openTable(const char* tableName); //统一表(文件)的操作，避免多次打开关闭一个表
+	int closeTable(const char* tableName);
+
 	int getPageLeftSize(int pageindex); //获取某个page剩余byte数
 	int getPageNum(const char* tablename); //加载表当前的页数
 	Data getRecordByLP(const char* tablename, LP pos); //根据位置和表名获取一条数据
-	bool hasSameSegVal(TableInfo& tb, const char* tablename, LP pos, DP condi); //判断某条数据的某个字段是否满足特定值
+
 
 	bool newEmptySpecialPage(const char* tablename);	
 	int newNormalPage(const char* tablename, int pageID);

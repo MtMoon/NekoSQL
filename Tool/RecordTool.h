@@ -27,6 +27,16 @@ typedef pair<Byte*, int> Data; //一个数据， first为Data指针，second为�
 typedef pair<string, Data> DP; //data pair, 用以指定一个数据对, first 为字段名 second为值,
 typedef pair<int,int> LP; //location air 用以定位一条数据记录，first为页号 second为槽号
 
+struct condidp { //专门用户search的结构体，用于值的比较
+	int value_int; //int类型的字段值
+	string value_str; //char或varchar类型的字段值
+	string name; //字段名
+	int type; //字段类型，0为int，1为char，-1为非法
+	bool isnull; //是否为null
+};
+
+typedef struct condidp ConDP;
+
 /**
  *定义一个表的固定基本信息
  *这部分信息存在表对应文件的第一页
@@ -80,6 +90,10 @@ public:
 
 	//获取某个定长字段的位置 first为其在数据行中的起始位置，second表示其列序号
 	static LP getSegOffset(TableInfo& tb, string& segname);
+	static int getNVLen(TableInfo& tb); //获取某个表中数据行非变长数据部分的长度
+
+	static bool hasSameSegVal(TableInfo& tb, Data record, ConDP condi, int cmpType); //判断某条数据的某个字段是否满足特定值
+	static ConDP getFieldValueInRecord(TableInfo& tb, Data record, string fieldName); //获取某个记录行中某个字段的值
 
 	static void copyByte(Byte* dst, const Byte* src, int len);
 	static void int2Byte(Byte* byte, int size, int num);

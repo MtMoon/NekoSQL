@@ -20,7 +20,7 @@ int main() {
 
 	// test record1
 
-	/*DP ageDp;
+	DP ageDp;
 	ageDp.first = "age";
 	Data agedata = RecordTool::int2Data(23);
 	ageDp.second = agedata;
@@ -42,30 +42,35 @@ int main() {
 	DP array[3];
 	array[2] = nameDp;
 	array[0] = ageDp;
-	array[1] = phoneDp;*/
+	array[1] = phoneDp;
 
 	//dm->insertRecord("user", array, 3);
-	//LP location;
-	//location.first = 1;
-	//location.second = 0;
-	//dm->deleteRecord("user", location);
-	/*vector<LP> ans = dm->searchRecord("user", nameDp);
+	ConDP namecondi;
+	namecondi.name = "age";
+	namecondi.type = 0;
+	namecondi.value_str = "";
+	namecondi.value_int = 24;
+	vector<LP> ans = dm->searchRecord("user", namecondi,2);
 	cout << "ans size: " << ans.size() << endl;
-	LP a = ans[0];
-	cout << a.first << " " << a.second << endl;
-	Data d = dm->getRecordByLP("user", a);
-	cout << "record size: " << d.second << endl;
-	Data dname;
-	Byte* bname = new Byte[3];
+	int tsize = 3;
+	for (int i=0; i<ans.size(); i++) {
+		LP a = ans[i];
+		cout << a.first << " " << a.second << endl;
 
-	for (int i=0; i<3; i++) {
-		bname[i] = d.first[27+i];
+		Data d = dm->getRecordByLP("user", a);
+		cout << "record size: " << d.second << endl;
+		Data dname;
+		Byte* bname = new Byte[tsize];
+
+		for (int i=0; i<tsize; i++) {
+			bname[i] = d.first[27+i];
+		}
+		dname.first = bname;
+		dname.second = tsize;
+		cout << RecordTool::data2Str(dname) << endl;
 	}
-	dname.first = bname;
-	dname.second = 3;
-	cout << RecordTool::data2Str(dname) << endl;*/
-	dm->deleteRecord("user", LP(1,0));
-	DP updateDp[1];
+	//dm->deleteRecord("user", LP(1,0));
+	/*DP updateDp[1];
 	DP namedp;
 	namedp.first = "name";
 	Data newname = RecordTool::str2Data("magic", 5);
@@ -88,7 +93,7 @@ int main() {
 	}
 	dname.first = bname;
 	dname.second = 5;
-	cout << RecordTool::data2Str(dname) << endl;
+	cout << RecordTool::data2Str(dname) << endl;*/
 
 
 

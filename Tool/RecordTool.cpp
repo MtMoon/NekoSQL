@@ -151,6 +151,155 @@ Data RecordTool::int2Data(int c) {
 	return d;
 }
 
+//判断某条数据的某个字段是否满足特定值
+bool RecordTool::hasSameSegVal(TableInfo& tb, Data record, ConDP condi, int cmpType) {
+	ConDP fieldValue = getFieldValueInRecord(tb, record, condi.name);
+	bool ans = false;
+
+	if ((cmpType != 3 && fieldValue.isnull) || (condi.type != fieldValue.type)) {
+		return ans;
+	}
+	//printf("lalal \n");
+	if (cmpType == 3) {
+		if (fieldValue.isnull) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	//整数
+	if (condi.type == 0) {
+		printf("age %d \n", fieldValue.value_int);
+		if (cmpType == 0 && condi.value_int == fieldValue.value_int) {
+			ans = true;
+		} else if (cmpType == 1 &&  fieldValue.value_int  > condi.value_int) {
+			ans = true;
+		} else if (cmpType == 2 &&  fieldValue.value_int < condi.value_int ) {
+			ans = true;
+		}
+	} else if (condi.type == 1) { //字符串
+		if (cmpType == 0 && condi.value_str == fieldValue.value_str) {
+			ans = true;
+		} else if (cmpType == 1 && fieldValue.value_str > condi.value_str ) {
+			ans = true;
+		} else if (cmpType == 2 && fieldValue.value_str < condi.value_str ) {
+			ans = true;
+		}
+	}
+	return ans;
+}
+
+//获取某个记录行中某个字段的值
+ConDP RecordTool::getFieldValueInRecord(TableInfo& tb, Data record, string fieldName) {
+	Byte* line = NULL;
+	ConDP ans;
+	ans.isnull = true;
+	ans.name = "";
+	ans.type = -1;
+	ans.value_int = 0;
+	ans.value_str = "";
+
+	if (record.first == NULL && record.second == 0) {
+		return ans;
+	}
+	line = record.first;
+
+	//获取非变长数据部分长度
+	int nvlen = getNVLen(tb);
+
+	//获取null位图
+	int nulllen = ceil(double(tb.FN+tb.VN)/8);
+	Byte nullByte[nulllen];
+	copyByte(nullByte, line+nvlen-2-2*tb.VN-nulllen, nulllen);
+
+	line = record.first;
+	Byte* temp = NULL;
+	int fieldType = -1;
+	int start = 0, end = 0;
+
+	if (isVCol(tb, fieldName)) {
+		//找到该字段是第几个变长列
+		int col = 0;
+		for (int i=0; i<tb.VN; i++) {
+			if (tb.Vname[i] == fieldName) {
+				col = i;
+				fieldType = tb.types[tb.FN+i];
+				break;
+			}
+		}
+		//判断是否为null
+		int whichByte = (tb.FN+col) / 8;
+		int whichBit = (tb.FN+col) % 8;
+		int ifnull = (nullByte[whichByte] >> whichBit) & 1;
+		if (ifnull == 1) {
+			return ans;
+		}
+
+		start = 0;
+		if (col == 0) {
+			start = nvlen;
+		} else {
+			int coff = nvlen - 2*tb.VN + 2*(col-1); //下一个变长列的开始位置是上一个变长列的结束未知
+			start = byte2Int(line+coff,2);
+		}
+		temp = line+nvlen-2*tb.VN+2*col;
+		end  = RecordTool::byte2Int(temp, 2);
+
+	} else { //是定长数据
+		LP off = getSegOffset(tb, fieldName);
+		temp = line + off.first;
+		start = off.first;
+		fieldType = tb.types[off.second];
+
+		int whichByte = (tb.FN+off.second) / 8;
+		int whichBit = (tb.FN+off.second) % 8;
+		int ifnull = (nullByte[whichByte] >> whichBit) & 1;
+		if (ifnull == 1) {
+				return ans;
+		}
+
+		if (fieldType == 0) {
+			end = start+4;
+		} else {
+			end = start + tb.Flen[off.second];
+		}
+
+	}
+
+	//获取数据
+	int len = end - start;
+	Byte data[len];
+	copyByte(data, line+start, len);
+	if (fieldType == 0) {
+		ans.type = fieldType;
+	} else if (fieldType == 1 || fieldType == 2) {
+		ans.type = 1;
+	}
+	ans.isnull = false;
+	ans.name = fieldName;
+	if (fieldType == 0) {
+		ans.value_int = byte2Int(data,4);
+	} else if (fieldType != -1) {
+		ans.value_str = string(data2Str(Data(data, len)));
+	}
+	return ans;
+}
+
+int RecordTool::getNVLen(TableInfo& tb) {
+	int nvlen = 9;
+	nvlen += 2*tb.VN;
+	nvlen += ceil(double(tb.FN+tb.VN)/8);
+	for (int i=0; i<tb.FN; i++) {
+		if (tb.types[i] == 0) {
+			nvlen += 4;
+			continue;
+		}
+		nvlen += tb.Flen[i];
+	}
+	return nvlen;
+}
+
 //字符数组转化为Data
 Data RecordTool::str2Data(char* str, int size) {
 	Data d;
