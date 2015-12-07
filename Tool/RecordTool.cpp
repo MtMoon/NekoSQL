@@ -397,6 +397,85 @@ int RecordTool::getRecordLen(Byte* byte)
 
 /*用于打印信息的工具函数*/
 /*****************************************************************/
+
+//在命令行打印一条记录，Data record 的first为记录行的Byte数组指针， second为该记录行的总长度
+void RecordTool::printRecord(TableInfo& tb, Data record) {
+	Byte* line = record.first;
+	if (line == NULL || record.second <= 0) {
+		printf("parameter error! \n");
+		return;
+	}
+	Byte tagA = line[0];
+	int len = byte2Int(line+1, 2);
+	if (len != record.second) {
+		printf("record length error! \n");
+		return;
+	}
+	//打印record信息
+	printf("--------------------Record Info----------------------\n");
+	//tag A
+	printf("Tag: ");
+	for (int i=0; i<8; i++) {
+		printf("%d ", (tagA>>i) & 1);
+	}
+	printf("\n");
+
+	//数据总长度
+	printf("record line total line length: %d\n", len);
+
+	//行定长数据总长度
+	int flen = byte2Int(line+3,2);
+	printf("fixed data length: %d\n", flen);
+
+	//null 位图
+	printf("null bit map: ");
+	int nullLen = ceil(double(tb.FN+tb.VN)/8);
+	Byte nullmap[nullLen];
+	int off = 7+flen;
+	copyByte(nullmap, line+off, nullLen);
+	for (int i=0; i<nullLen; i++) {
+		for (int j=0; j<8; j++) {
+			printf("%d ", (nullmap[i]>>j) & 1);
+		}
+	}
+	printf("\n");
+
+	//定长数据
+	printf("fixed data: \n");
+	off = 5;
+	for (int i=0; i<tb.FN; i++) {
+		printf("%s   ", tb.Fname[i].c_str());
+		if (tb.types[i] == 0) {
+			printf("%d \n", byte2Int(line+off,4));
+			off += 4;
+		} else {
+			printf("%s \n", data2Str(Data(line+off,tb.Flen[i])));
+			off += tb.Flen[i];
+		}
+	}
+	//变长数据
+	printf("varied data: \n");
+	int vdataoff = getNVLen(tb); //变长数据起始
+	off = vdataoff-2*tb.VN; //列偏移数组起始
+
+	for (int i=0; i<tb.VN; i++) {
+		printf("%s :  ", tb.Vname[i].c_str());
+		int vlen = byte2Int(line+off, 2);
+		//printf("vlen:%d \n", vlen);
+		//printf("vdataoff:%d \n", vdataoff);
+		if (vlen-vdataoff<=0) {
+			off += 2;
+			continue;
+		}
+		printf("%s \n", data2Str(Data(line+vdataoff, vlen-vdataoff)));
+		off += 2;
+		vdataoff = vlen;
+	}
+	printf("-----------------------------------------------------------------------\n");
+
+}
+
+
 //在命令行打印表信息
 string RecordTool::printTableInfo(const TableInfo& tb) {
 	/*stringstream ss;

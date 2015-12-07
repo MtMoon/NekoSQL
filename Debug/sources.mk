@@ -26,6 +26,7 @@ SUBDIRS := \
 utils \
 . \
 sysmanager \
+indexmanager \
 datamanager \
 Tool \
 

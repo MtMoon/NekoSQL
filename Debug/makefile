@@ -10,6 +10,7 @@ RM := rm -rf
 -include sources.mk
 -include utils/subdir.mk
 -include sysmanager/subdir.mk
+-include indexmanager/subdir.mk
 -include datamanager/subdir.mk
 -include Tool/subdir.mk
 -include subdir.mk

@@ -103,6 +103,9 @@ public:
 
 	//在命令行打印表信息
 	static string printTableInfo(const TableInfo& tb);
+
+	//在命令行打印一条记录，Data record 的first为记录行的Byte数组指针， second为该记录行的总长度
+	static void printRecord(TableInfo& tb, Data record);
 };
 
 
