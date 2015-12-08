@@ -47,7 +47,13 @@ int main() {
 	TableInfo tb = dm->getTableInfo("user");
 
 	//dm->insertRecord("user", array, 3);
-	ConDP namecondi;
+	dm->deleteRecord("user", LP(1,2));
+	vector<LP> LPVec = dm->getAllLPInTable("user");
+	for (int i=0; i<LPVec.size(); i++) {
+		cout << LPVec[i].first << " " << LPVec[i].second << endl;
+	}
+
+	/*ConDP namecondi;
 	namecondi.name = "age";
 	namecondi.type = 0;
 	namecondi.value_str = "";
@@ -61,7 +67,7 @@ int main() {
 		Data d = dm->getRecordByLP("user", a);
 		RecordTool::printRecord(tb, d);
 
-	}
+	}*/
 
 	//dm->deleteRecord("user", LP(1,0));
 	/*DP updateDp[1];

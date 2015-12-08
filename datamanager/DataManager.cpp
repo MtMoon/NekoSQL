@@ -709,6 +709,31 @@ void DataManager::invalidTbMap(string tbName) {
 	}
 }
 
+//获取一个表里所有有效数据的LP
+vector<LP> DataManager::getAllLPInTable(const char* tablename) {
+	vector<LP> vec;
+	openTable(tablename);
+	int pageNum =  getPageNum(tablename);
+	for (int i=0; i<pageNum; i++) {
+		int pageindex = 0;
+		bm->getPage(currentFileID, i, pageindex);
+		Byte* page = (Byte*)bm->addr[pageindex];
+		int slotNum = RecordTool::byte2Int(page+2, 2);
+		//遍历槽
+		for (int j=0; j<slotNum; j++) {
+			int start = 0;
+			Byte* temp = page + PAGE_SIZE - 2*(j+1);
+			start = RecordTool::byte2Int(temp, 2);
+			if (start>=96) {
+				vec.push_back(LP(i,j));
+			}
+		}
+	}
+
+
+	return vec;
+}
+
 /**
  * return 0: 该表当前已打开 1:该表当前未打开，已重新打开表
  */
