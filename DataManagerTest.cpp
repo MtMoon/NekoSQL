@@ -13,7 +13,7 @@
 #include <cstring>
 using namespace std;
 
-int main() {
+/*int main() {
 
 	DataManager* dm = new DataManager();
 	dm->setDatabase("test1");
@@ -46,14 +46,14 @@ int main() {
 
 	TableInfo tb = dm->getTableInfo("user");
 
-	//dm->insertRecord("user", array, 3);
-	dm->deleteRecord("user", LP(1,2));
+	dm->insertRecord("user", array, 3);
+	//dm->deleteRecord("user", LP(1,2));
 	vector<LP> LPVec = dm->getAllLPInTable("user");
 	for (int i=0; i<LPVec.size(); i++) {
 		cout << LPVec[i].first << " " << LPVec[i].second << endl;
 	}
 
-	/*ConDP namecondi;
+	ConDP namecondi;
 	namecondi.name = "age";
 	namecondi.type = 0;
 	namecondi.value_str = "";
@@ -67,10 +67,10 @@ int main() {
 		Data d = dm->getRecordByLP("user", a);
 		RecordTool::printRecord(tb, d);
 
-	}*/
+	}
 
 	//dm->deleteRecord("user", LP(1,0));
-	/*DP updateDp[1];
+	DP updateDp[1];
 	DP namedp;
 	namedp.first = "name";
 	Data newname = RecordTool::str2Data("magic", 5);
@@ -93,11 +93,11 @@ int main() {
 	}
 	dname.first = bname;
 	dname.second = 5;
-	cout << RecordTool::data2Str(dname) << endl;*/
+	cout << RecordTool::data2Str(dname) << endl;
 
 
 
 	return 0;
 }
-
+*/
 

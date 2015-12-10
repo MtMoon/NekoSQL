@@ -4,13 +4,19 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-../indexmanager/BPlushTree.cpp 
+../indexmanager/BPlusTree.cpp \
+../indexmanager/BTNode.cpp \
+../indexmanager/IndexManager.cpp 
 
 OBJS += \
-./indexmanager/BPlushTree.o 
+./indexmanager/BPlusTree.o \
+./indexmanager/BTNode.o \
+./indexmanager/IndexManager.o 
 
 CPP_DEPS += \
-./indexmanager/BPlushTree.d 
+./indexmanager/BPlusTree.d \
+./indexmanager/BTNode.d \
+./indexmanager/IndexManager.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

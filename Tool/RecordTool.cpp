@@ -388,6 +388,16 @@ void RecordTool::int2Byte(Byte* byte, int size, int num)
 		byte[i] = temp[i];
 }
 
+void RecordTool::str2Byte(Byte* byte, int size, const char* str) {
+	int slen = strlen(str);
+	for (int i=0; i<slen; i++) {
+			byte[i] = str[i];
+	}
+	for (int i=slen; i<size; i++) {
+		byte[i] = 0;
+	}
+}
+
 int RecordTool::getRecordLen(Byte* byte)
 {
 	if (byte == NULL)

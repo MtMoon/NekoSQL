@@ -5,16 +5,19 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
 ../DataManagerTest.cpp \
+../IndexManagerTest.cpp \
 ../SysManagerTest.cpp \
 ../test.cpp 
 
 OBJS += \
 ./DataManagerTest.o \
+./IndexManagerTest.o \
 ./SysManagerTest.o \
 ./test.o 
 
 CPP_DEPS += \
 ./DataManagerTest.d \
+./IndexManagerTest.d \
 ./SysManagerTest.d \
 ./test.d 
 

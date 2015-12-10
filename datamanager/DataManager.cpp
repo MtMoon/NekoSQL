@@ -477,7 +477,7 @@ TableInfo DataManager::getTableInfo(const char* tablename) {
 int DataManager::getPageNum(const char* tablename) {
 	//获取文件的大小再除以8k即可
 	string filepath(tablename);
-	filepath = "DataBase/" + currentBase + "/" + filepath;
+	filepath = "DataBase/" + currentBase + "/" + filepath + ".data";
 
 	struct stat buf;
 	if(stat(filepath.c_str(), &buf)<0) {
@@ -601,7 +601,7 @@ TableInfo DataManager::loadTableInfo(const char* tablename) {
 //写入表元信息，供SysManager在创建表时使用
 void DataManager::writeTableInfo(string tableName, TableInfo tb) {
 	string filepath;
-	filepath = "DataBase/" + currentBase + "/" + tableName;
+	filepath = "DataBase/" + currentBase + "/" + tableName + ".data";
 	int fileID = 0;
 	fm->openFile(filepath.c_str(), fileID);
 	int pageindex = 0;
@@ -744,7 +744,7 @@ int DataManager::openTable(const char* tableName) {
 			fm->closeFile(currentFileID);
 		}
 		string filepath(tableName);
-		filepath = "DataBase/" + currentBase + "/" + filepath;
+		filepath = "DataBase/" + currentBase + "/" + filepath + ".data";
 		fm->openFile(filepath.c_str(), currentFileID);
 		return 1;
 	}
@@ -772,7 +772,7 @@ int DataManager::closeTable(const char* tableName) {
 bool DataManager::newEmptySpecialPage(const char* tablename)
 {
 	string filepath(tablename);
-	filepath = "DataBase/" + currentBase + "/" + filepath;
+	filepath = "DataBase/" + currentBase + "/" + filepath + ".data";
 	int fileID;
 	fm->openFile(filepath.c_str(), fileID);
 	int index;
@@ -801,7 +801,7 @@ int DataManager::newNormalPage(const char* tablename, int fileID)
 void DataManager::pageInfo(const char* tablename, int pageID)
 {
 	string filepath(tablename);
-	filepath = "DataBase/" + currentBase + "/" + filepath;
+	filepath = "DataBase/" + currentBase + "/" + filepath + ".data";
 	int fileID;
 	fm->openFile(filepath.c_str(), fileID);
 	if (pageID < 1 || pageID >= getPageNum(tablename))

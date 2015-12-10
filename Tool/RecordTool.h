@@ -97,6 +97,7 @@ public:
 
 	static void copyByte(Byte* dst, const Byte* src, int len);
 	static void int2Byte(Byte* byte, int size, int num);
+	static void str2Byte(Byte* byte, int size, const char* str);
 	static int getRecordLen(Byte* byte);
 
 	//打印用的工具函数

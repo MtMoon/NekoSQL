@@ -174,7 +174,12 @@ vector<string> SysManager::showTables(int& flag) {
 	dir = opendir(path.data());
 	while((ptr = readdir(dir)) != NULL) {
 		if (ptr->d_type == 8) {
-			ans.push_back(string(ptr->d_name));
+			string name(ptr->d_name);
+			int pos = name.find(".data");
+			if (pos != string::npos) {
+				string tbname = name.substr(0, pos);
+				ans.push_back(tbname);
+			}
 		}
 	}
 	closedir(dir);
@@ -194,7 +199,7 @@ int SysManager::dropTable(string tbName) {
 		return -1;
 	}
 
-	string filepath = "DataBase/" + dataManager->getCurrentDBName() + "/" + tbName;
+	string filepath = "DataBase/" + dataManager->getCurrentDBName() + "/" + tbName + ".data";
 
 	if (is_file_exist(filepath.data()) == -1) {
 		return 0;
@@ -227,7 +232,7 @@ vector<FieldInfo> SysManager::descTable(string tableName, int& flag) {
 	}
 
 
-	string filepath = "DataBase/" + dataManager->getCurrentDBName() + "/" + tableName;
+	string filepath = "DataBase/" + dataManager->getCurrentDBName() + "/" + tableName + ".data";
 
 	if (is_file_exist(filepath.data()) == -1) {
 		flag = 0;
@@ -278,7 +283,7 @@ int SysManager::createTable(string tableName, vector<FieldInfo> tbvec) {
 		return -1;
 	}
 
-	string filepath = "DataBase/" + dataManager->getCurrentDBName() + "/" + tableName;
+	string filepath = "DataBase/" + dataManager->getCurrentDBName() + "/" + tableName + ".data";
 
 	if (is_file_exist(filepath.data()) == 0) {
 		return 0;
