@@ -61,8 +61,8 @@ int IndexManager::createIndex( IndexInfo indexInfo) {
 	ibm->allocPage(fileID, 0, index, false);
 	Byte* page = (Byte*)ibm->addr[index];
 
-	int metaLen = 51;
-	Byte meta[51];
+	int metaLen = 77;
+	Byte meta[metaLen];
 	int off  = 0;
 	RecordTool::str2Byte(meta + off, 24, indexInfo.tableName.c_str());
 	off += 24;
@@ -85,7 +85,12 @@ int IndexManager::createIndex( IndexInfo indexInfo) {
 
 	RecordTool::int2Byte(meta+off, 1, indexInfo.indexType);
 	off += 1;
-	RecordTool::copyByte(page, meta, 51);
+
+	RecordTool::int2Byte(meta+off, 2, indexInfo.fieldLen);
+	off += 2;
+
+
+	RecordTool::copyByte(page, meta, metaLen);
 	ibm->markDirty(index);
 	ibm->writeBack(index);
 
@@ -298,8 +303,28 @@ int  IndexManager::search(ConDP key) {
 bool IndexManager::insert(ConDP key, Data record) {
 	int v = search(key);
 	if (v == -1) { //当v为-1时，说明根节点为空
-
+		fillRoot(key);
+		v = search(key);
 	}
+	assert(v != -1);
+
+	//打开数据页v并找到合适的地方进行插入，可能需要移动后续记录行
+	string tdfilepath = "DataBase/" + currentDB + "/" + currentTable + ".data"; //临时数据文件
+	int fileid;
+	dfm->openFile(tdfilepath.c_str(), fileid);
+	int pageindex;
+	Byte* page = (Byte*)(ibm->getPage(fileid, v, pageindex));
+
+
+	//写入数据
+	dbm->markDirty(pageindex);
+	dbm->writeBack(pageindex);
+	dfm->closeFile(fileid);
+}
+
+//插入，用于非簇集索引，用于插入倒页级索引页
+bool IndexManager::insert(ConDP key, LP pos) {
+
 }
 
 //插入时根节点为空，填充根节点
@@ -308,23 +333,40 @@ void IndexManager::fillRoot(ConDP key) {
 	string dfilepath = "DataBase/" + currentDB + "/" + currentTable + ".data";
 	int datapageNum = 0;
 	datapageNum = getFilePageNum(dfilepath.c_str());
+
+	int pid1 = datapageNum;
+	int pid2 = datapageNum;
+
 	int fileID;
 	dfm->openFile(dfilepath.c_str(), fileID);
 	int index;
-	dbm->allocPage(fileID, datapageNum, index, false);
+	dbm->allocPage(fileID, pid1, index, false);
 	dbm->markDirty(index);
 	dbm->writeBack(index);
-	datapageNum++;
-	dbm->allocPage(fileID, datapageNum, index, false);
+
+	dbm->allocPage(fileID, pid2, index, false);
 	dbm->markDirty(index);
 	dbm->writeBack(index);
 	dfm->closeFile(fileID);
 
 	//构造两个索引行
 	IndexInfo indexinfo = getCurrentIndexInfo();
+	int lineLen = calcuIndexLineLen(indexinfo, key, 0);
+	Byte index1[lineLen];
+	makeIndexLine(indexinfo, key, 0, pid1, LP(-1,-1), lineLen, index1);
 
+	Byte index2[lineLen];
+	makeIndexLine(indexinfo, key, 0, pid2, LP(-1,-1), lineLen, index2);
 
+	//将这两个记录行写入根页
+	openIndex(currentTable, currentIndex);
+	Byte* page = (Byte*)(ibm->getPage(currentFileID, 0, index));
 
+	RecordTool::copyByte(page+96, index1, lineLen);
+	RecordTool::copyByte(page+96+lineLen, index2, lineLen);
+
+	ibm->markDirty(index);
+	ibm->writeBack(index);
 }
 
 //处理上溢页分裂
@@ -333,6 +375,89 @@ void IndexManager::solveOverflow(int v) {
 }
 
 //B+Tree相关的工具函数
+
+//计算索引行的长度，不包括簇集索引叶级页的索引行
+int IndexManager::calcuIndexLineLen(IndexInfo& indexinfo, ConDP key, int type) {
+	int len = 9;
+	if (indexinfo.ifNull == 1) {
+		len += 1;
+	}
+	if (indexinfo.ifFixed == 1) {
+		len += indexinfo.fieldLen;
+	} else if (indexinfo.ifFixed == 0) {
+		len += 2;
+		if (key.type == 0) {
+			len += 4;
+		} else if (key.type == 1) {
+			len += key.value_str.length();
+		}
+	}
+	if (type == 1) { //如果是非簇集索引的叶级索引行，则再加上4byte的指针
+		len += 4;
+	}
+	return len;
+}
+
+//构造索引行，不包括簇集索引叶级页的索引行
+//type 0 中间页索引行  1 叶级页索引行
+// 当type 为0时， LP 为-1，-1即可
+void IndexManager::makeIndexLine(IndexInfo& indexinfo, ConDP key, int type, int pid, LP pos, int lineLen, Byte* line) {
+	Byte tag;
+	tag &= 0x00;
+	if (indexinfo.ifFixed == 1) {
+		tag |= 1;
+	}
+
+	if (type == 1) {
+		tag |= (1<<1);
+	}
+	int off = 1;
+	RecordTool::int2Byte(line+off, 2, lineLen);
+	off += 2;
+	RecordTool::int2Byte(line+off, 4, pid);
+	off += 4;
+	if (indexinfo.ifNull == 1) {
+		if (key.isnull) {
+			RecordTool::int2Byte(line+off, 1, 1);
+		} else {
+			RecordTool::int2Byte(line+off, 1, 0);
+		}
+		off += 1;
+	}
+
+	if (indexinfo.ifFixed == 1) { //定长码值长度
+		RecordTool::int2Byte(line+off, 2, indexinfo.fieldLen);
+	} else {
+		RecordTool::int2Byte(line+off, 2, 0);
+	}
+
+	off += 2;
+
+	//码值
+	if (indexinfo.ifFixed == 1) { //定长码值
+		if (key.type == 0) {
+			RecordTool::int2Byte(line+off, indexinfo.fieldLen, key.value_int);
+		} else if (key.type == 1) {
+			RecordTool::str2Byte(line+off, indexinfo.fieldLen, key.value_str.c_str());
+		}
+		off += indexinfo.fieldLen;
+
+	} else { //变长码值
+		RecordTool::int2Byte(line+off, 2, off+2+key.value_str.length()); //列偏移
+		off += 2;
+		RecordTool::str2Byte(line+off, key.value_str.length(), key.value_str.c_str());
+		off += key.value_str.length();
+	}
+
+	//是页级索引
+	if (type == 1) {
+		RecordTool::int2Byte(line+off, 2, pos.first); //写入页号和槽号
+		off += 2;
+		RecordTool::int2Byte(line+off, 2, pos.second);
+	}
+
+
+}
 
 //在一个索引节点内搜索码值
 //查找大于e的最小索引码值
@@ -464,6 +589,9 @@ IndexInfo IndexManager::getCurrentIndexInfo() {
 	int indexType = 0;
 	indexType = RecordTool::byte2Int(page+off, 1);
 	indexinfo.indexType = indexType;
+	off += 1;
+
+	indexinfo.fieldLen = RecordTool::byte2Int(page+off, 2);
 
 	return indexinfo;
 }
