@@ -16,9 +16,10 @@ struct indexinfo {
 	string tableName;
 	string fieldName;
 	int fieldType; //0 int 1 char
-	int ifFixed; // 0 索引字段为定长，1 索引字段为变长
+	int ifFixed; // 1 索引字段为定长，0 索引字段为变长
 	int ifNull; // 0不允许字段为NULL，允许字段为NULL
 	int indexType; //0 非簇集不唯一，1 非簇集唯一，2 簇集(默认唯一)
+	bool legal; //是否合法
 
 };
 
@@ -46,11 +47,20 @@ public:
 	int insertRecord(ConDP key, Data record);
 
 private:
-	BufPageManager* bm;
-	FileManager* fm;
+	//用于数据文件的操作
+	BufPageManager* dbm;
+	FileManager* dfm;
+
+	//用于索引文件的操作
+	BufPageManager* ibm;
+	FileManager* ifm;
+
+
 	string currentDB;
 	string currentTable;
 	string currentIndex;
+	IndexInfo currentIndexInfo;
+
 	int currentFileID;
 
 	//用于索引操作的函数
@@ -66,15 +76,22 @@ private:
 	int is_file_exist(const char* filepath);
 	int getFilePageNum(const char* filepath); //获取文件页数
 	TableInfo loadTableInfo(Byte* metaPage); //加载表信息
+	IndexInfo getCurrentIndexInfo();
 
 	/*----------------------------------------------B+Tree part-----------------------------------*/
 	//B+Tree相关成员变量
 	int hot;
+	int _order; //B+树的阶数
+	int lower_bound;
+	int upper_bound;
 	//B+Tree相关函数
 	int search(ConDP key); //找到包含key的叶节点页，返回页号
+	bool insert(ConDP key, Data record);
+	void solveOverflow(int v); //处理上溢页分裂
+	void fillRoot(ConDP key); //插入时根节点为空，填充根节点
 
 	//B+Tree相关的工具函数
-	int nodeSearch(ConDP key, int & child, int& type, const Byte* page);
+	int nodeSearch(ConDP key, int v, int& type);
 
 
 };

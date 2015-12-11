@@ -14,7 +14,7 @@ using namespace std;
 
 int main() {
 
-	vector<char> vec;
+	/*vector<char> vec;
 	vec.push_back('a');
 	vec.push_back('b');
 	vec.push_back('d');
@@ -34,9 +34,29 @@ int main() {
 	indexinfo.ifNull = 0;
 	indexinfo.indexName = "index_name";
 	indexinfo.indexType = 2;
-	indexinfo.tableName = "user";
+	indexinfo.tableName = "user";*/
 
 	//im->createIndex("test1", indexinfo);
+
+	BufPageManager* bm;
+	FileManager* fm;
+	fm = new FileManager();
+	bm = new BufPageManager(fm);
+
+	fm->createFile("fmtest.txt");
+
+	int fileID;
+	fm->openFile("fmtest.txt", fileID);
+	int index;
+	bm->allocPage(fileID, 2, index, false);
+	bm->markDirty(index);
+	bm->writeBack(index);
+
+	bm->allocPage(fileID, 3, index, false);
+	bm->markDirty(index);
+	bm->writeBack(index);
+
+	fm->closeFile(fileID);
 
 
 	return 0;

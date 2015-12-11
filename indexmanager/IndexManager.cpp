@@ -8,18 +8,30 @@
 #include "IndexManager.h"
 
 IndexManager::IndexManager() {
-	fm = new FileManager();
-	bm = new BufPageManager(fm);
+	dfm = new FileManager();
+	dbm = new BufPageManager(dfm);
+
+	ifm = new FileManager();
+	ibm = new BufPageManager(ifm);
+
+	currentIndexInfo.legal = false;
+
 	currentDB = "";
 	currentTable = "";
 	currentIndex = "";
 	currentFileID = -1;
 	hot = 0;
+	_order = 80;
+	lower_bound = ceil(double(_order) / 2) -1;
+	upper_bound = _order-1;
 }
 
 IndexManager::~IndexManager() {
-	delete fm;
-	delete bm;
+	delete dfm;
+	delete dbm;
+
+	delete ifm;
+	delete ibm;
 }
 
 //供用户调用的定义函数
@@ -39,15 +51,15 @@ int IndexManager::createIndex( IndexInfo indexInfo) {
 	if (is_file_exist(filePath.c_str()) == 0) {
 		return 0;
 	}
-	bool success = fm->createFile(filePath.c_str());
+	bool success =ifm->createFile(filePath.c_str());
 	if (!success) {
 		return -3;
 	}
 	int fileID;
-	fm->openFile(filePath.c_str(), fileID);
+	ifm->openFile(filePath.c_str(), fileID);
 	int index;
-	bm->allocPage(fileID, 0, index, false);
-	Byte* page = (Byte*)bm->addr[index];
+	ibm->allocPage(fileID, 0, index, false);
+	Byte* page = (Byte*)ibm->addr[index];
 
 	int metaLen = 51;
 	Byte meta[51];
@@ -55,6 +67,8 @@ int IndexManager::createIndex( IndexInfo indexInfo) {
 	RecordTool::str2Byte(meta + off, 24, indexInfo.tableName.c_str());
 	off += 24;
 	RecordTool::str2Byte(meta+off, 24, indexInfo.fieldName.c_str());
+	off += 24;
+	RecordTool::str2Byte(meta+off, 24, indexInfo.indexName.c_str());
 	off += 24;
 	RecordTool::int2Byte(meta+off, 1, indexInfo.fieldType);
 	off += 1;
@@ -72,13 +86,13 @@ int IndexManager::createIndex( IndexInfo indexInfo) {
 	RecordTool::int2Byte(meta+off, 1, indexInfo.indexType);
 	off += 1;
 	RecordTool::copyByte(page, meta, 51);
-	bm->markDirty(index);
-	bm->writeBack(index);
+	ibm->markDirty(index);
+	ibm->writeBack(index);
 
 	//写入根节点页
 	off = 0;
-	bm->allocPage(fileID, 1, index, false);
-	page = (Byte*)bm->addr[index];
+	ibm->allocPage(fileID, 1, index, false);
+	page = (Byte*)ibm->addr[index];
 	RecordTool::int2Byte(page+off, 2,  PAGE_SIZE-96);
 	off += 2;
 	RecordTool::int2Byte(page+off, 1,  0); //level0即根页
@@ -86,10 +100,10 @@ int IndexManager::createIndex( IndexInfo indexInfo) {
 	RecordTool::int2Byte(page+off, 1,  0); //页类型，非页级索引页
 	off += 1;
 	RecordTool::int2Byte(page+off, 2,  0); //已有索引行数量为0
-	bm->markDirty(index);
-	bm->writeBack(index);
+	ibm->markDirty(index);
+	ibm->writeBack(index);
 
-	fm->closeFile(fileID);
+	ifm->closeFile(fileID);
 
 
 
@@ -124,6 +138,7 @@ int IndexManager::dropIndex(string tableName, string indexName) {
 
 void  IndexManager::setDataBase(string dbName) {
 	currentDB = dbName;
+	currentIndexInfo.legal = false;
 }
 
 int IndexManager::insertRecord(ConDP key, Data record) {
@@ -160,34 +175,34 @@ int IndexManager::reBuildData(IndexInfo indexinfo) {
 	//复制meta数据页
 	Byte metapage[PAGE_SIZE];
 	int fileid = 0;
-	fm->openFile(dfilepath.c_str(), fileid);
+	dfm->openFile(dfilepath.c_str(), fileid);
 	int pageindex = 0;
-	Byte* page = (Byte*)bm->getPage(fileid, 0, pageindex);
+	Byte* page = (Byte*)dbm->getPage(fileid, 0, pageindex);
 	RecordTool::copyByte(metapage, page, PAGE_SIZE);
-	fm->closeFile(fileid);
+	dfm->closeFile(fileid);
 
 	//加载table info
 	TableInfo tb = loadTableInfo(metapage);
 
 	//创建新数据文件
 	string tdfilepath = "DataBase/" + currentDB + "/" + indexinfo.tableName + "_temp.data"; //临时数据文件
-	fm->openFile(tdfilepath.c_str(), fileid);
-	bm->allocPage(fileid, 0, pageindex, false);
-	page = (Byte*)bm->addr[pageindex];
+	dfm->openFile(tdfilepath.c_str(), fileid);
+	dbm->allocPage(fileid, 0, pageindex, false);
+	page = (Byte*)dbm->addr[pageindex];
 	//写入元数据页
 	RecordTool::copyByte(page, metapage, PAGE_SIZE);
-	bm->markDirty(pageindex);
-	bm->writeBack(pageindex);
-	fm->closeFile(fileid);
+	dbm->markDirty(pageindex);
+	dbm->writeBack(pageindex);
+	dfm->closeFile(fileid);
 
 	//将原数据文件的数据行逐一读取，重新插入新的问文件中
 	Byte onePage[PAGE_SIZE];
 	for (int i=1; i<datapageNum; i++) {
 		//以页为单位读取并插入,因为助教给的fm只能同时打开一个文件，而且页不想取该hash函数 ~~~~(>_<)~~~~
-		fm->openFile(dfilepath.c_str(), fileid);
-		Byte* page = (Byte*)bm->getPage(fileid, i, pageindex);
+		dfm->openFile(dfilepath.c_str(), fileid);
+		Byte* page = (Byte*)dbm->getPage(fileid, i, pageindex);
 		RecordTool::copyByte(onePage, page, PAGE_SIZE);
-		fm->closeFile(fileid);
+		dfm->closeFile(fileid);
 
 		openIndex(indexinfo.tableName, indexinfo.indexName);
 		int slotNum = 0;
@@ -233,14 +248,15 @@ int  IndexManager::openIndex(string tableName, string indexName) {
 
 	if (tableName != currentTable || indexName != currentIndex) {
 		if ("" != tableName && "" != indexName && currentFileID != -1) {
-			fm->closeFile(currentFileID);
+			ifm->closeFile(currentFileID);
 		}
 		string filepath = "";
 		filepath = "DataBase/" + currentDB + "/" + indexName + "_" + tableName + ".index";
-		fm->openFile(filepath.c_str(), currentFileID);
+		ifm->openFile(filepath.c_str(), currentFileID);
 		return 1;
 	}
 	assert(currentFileID >= 0);
+	getCurrentIndexInfo();
 	return 0;
 }
 
@@ -251,7 +267,7 @@ int  IndexManager::closeIndex( string tableName, string indexName) {
 	if (tableName != currentTable || indexName != currentIndex || currentFileID == -1) {
 		return 0;
 	}
-	fm->closeFile(currentFileID);
+	ifm->closeFile(currentFileID);
 	currentFileID = -1;
 	currentTable = "";
 	currentIndex = "";
@@ -260,33 +276,199 @@ int  IndexManager::closeIndex( string tableName, string indexName) {
 
 /*----------------------------------------------B+Tree part-----------------------------------*/
 //找到包含key的叶节点页，返回页号
+//失败时返回-1
 int  IndexManager::search(ConDP key) {
 	//从根节点出发
-	int pageindex = 0;
-	int v = 0;
-	bm->getPage(currentFileID, v, pageindex);
-	Byte* page = (Byte*)bm->addr[pageindex];
+	int v = 1; //第0页为meta数据页
 	hot = 0;
-
-	int r = 0;
+	int next = 0, type = 0;
 	while (v != -1) {
-
+		next = nodeSearch(key, v, type);
+		if (type == 1) { //若是找到了叶级页，则之间返回
+			return next;
+		}
+		hot = v;
+		v = next;
 	}
 
+	return -1;
+}
 
+//插入，用于簇集索引，需操作数据页的插入和索引页的插入
+bool IndexManager::insert(ConDP key, Data record) {
+	int v = search(key);
+	if (v == -1) { //当v为-1时，说明根节点为空
+
+	}
+}
+
+//插入时根节点为空，填充根节点
+void IndexManager::fillRoot(ConDP key) {
+	//插入两个索引行，并申请两个新的数据页
+	string dfilepath = "DataBase/" + currentDB + "/" + currentTable + ".data";
+	int datapageNum = 0;
+	datapageNum = getFilePageNum(dfilepath.c_str());
+	int fileID;
+	dfm->openFile(dfilepath.c_str(), fileID);
+	int index;
+	dbm->allocPage(fileID, datapageNum, index, false);
+	dbm->markDirty(index);
+	dbm->writeBack(index);
+	datapageNum++;
+	dbm->allocPage(fileID, datapageNum, index, false);
+	dbm->markDirty(index);
+	dbm->writeBack(index);
+	dfm->closeFile(fileID);
+
+	//构造两个索引行
+	IndexInfo indexinfo = getCurrentIndexInfo();
+
+
+
+}
+
+//处理上溢页分裂
+void IndexManager::solveOverflow(int v) {
 
 }
 
 //B+Tree相关的工具函数
 
 //在一个索引节点内搜索码值
-int  IndexManager::nodeSearch(ConDP key, int & child, int& type, const Byte* page) {
+//查找大于e的最小索引码值
+//return 返回下页页号
+// type 下页类型，0 中间索引页，1 叶级页
+//(具体是叶级索引页还是叶级数据页，通过indexinfo判断)
+int  IndexManager::nodeSearch(ConDP conkey, int v, int& type) {
+	int pageindex = 0;
+	ibm->getPage(currentFileID, v, pageindex);
+	Byte* page = (Byte*)ibm->addr[pageindex];
+	IndexInfo indexinfo = getCurrentIndexInfo();
+	//遍历索引页中的所有索引行
+	int lineNum = 0;
+	type = -1;
+	lineNum = RecordTool::byte2Int(page+5, 2);
+	if (lineNum == 0) {
+		return -1;
+	}
+	int count = 0;
+	int off = 96;
+	Byte* line = NULL;
+	while (count < lineNum-1) { //最后一个指针单独处理
+		line = page + off;
+		int lineLen = RecordTool::byte2Int(line+1, 2);
+		//取出下页类型
+		Byte tag = line[0];
+		type = (tag >> 1) & 1;
+
+		//取出下页页号
+		int next = RecordTool::byte2Int(line+3, 4);
+
+		//看key是否为null
+		int tempoff = 7;
+		if (indexinfo.ifNull == 1) {
+			Byte nullByte = line[tempoff];
+			int ifNull = nullByte & 1;
+			if (ifNull == 1  && conkey.isnull) {
+				return next;
+			} else if ((ifNull == 0 && conkey.isnull) || (ifNull == 1 && !conkey.isnull)) {
+				continue;
+			}
+			tempoff += 1;
+		}
+		//取出码值
+
+		int start = 0;
+		int end = 0;
+
+		if (indexinfo.ifFixed == 1) { //定长码值
+			int keylen = RecordTool::byte2Int(line+tempoff, 2); //定长码长度
+			start = tempoff + 2;
+			end = start + keylen;
+		} else { //变长码值
+			tempoff += 2;
+			//取出变长列结束位置
+			end = RecordTool::byte2Int(line+tempoff, 2);
+			tempoff += 2;
+			start = tempoff;
+		}
+
+		if (indexinfo.fieldType == 0) { //int
+			int key = RecordTool::byte2Int(line+start, end-start);
+			if (conkey.value_int < key) {
+				return next;
+			}
+		} else if (indexinfo.fieldType == 1) { //string
+			char key[end-start];
+			RecordTool::byte2Str(key, line+start, end-start);
+			if (conkey.value_str < string(key)) {
+				return next;
+			}
+		}
+
+		off += lineLen;
+		count++;
+	}
+	//至此，则为待检索码值大于等于该页中最大码值
+	//返回又边界指针
+	int next = RecordTool::byte2Int(page+off+3, 4);
+	return next;
 
 }
 
 
 /*-----------------------------------------------------------------------------------------------------*/
 //工具函数
+
+IndexInfo IndexManager::getCurrentIndexInfo() {
+
+	//当前已加载且合法，则直接返回
+	if (currentIndexInfo.legal == true && currentIndexInfo.tableName == currentTable
+			&& currentIndexInfo.indexName == currentIndex) {
+		return currentIndexInfo;
+	}
+
+	//当前存储的索引不合法则重新读s取
+	int pageindex = 0;
+	ibm->getPage(currentFileID, 0, pageindex);
+	Byte* page = (Byte*)ibm->addr[pageindex];
+	IndexInfo indexinfo;
+	char tableName[24];
+	int off = 0;
+	RecordTool::byte2Str(tableName, page + off, 24);
+	off += 24;
+	char fieldName[24];
+	RecordTool::byte2Str(fieldName, page + off, 24);
+	off += 24;
+	char indexName[24];
+	RecordTool::byte2Str(indexName, page + off, 24);
+	off += 24;
+
+	indexinfo.tableName = string(tableName);
+	indexinfo.fieldName = string(fieldName);
+	indexinfo.indexName = string(indexName);
+
+	assert(indexinfo.indexName == currentIndex && indexinfo.tableName == currentTable);
+
+	int fieldType = 0;
+	fieldType = RecordTool::byte2Int(page+off, 1);
+	off += 1;
+
+	indexinfo.fieldType = fieldType;
+
+	Byte tag = page[off];
+	off += 1;
+	indexinfo.ifFixed = (tag & 1);
+	indexinfo.ifNull = (tag >> 1) & 1;
+
+	int indexType = 0;
+	indexType = RecordTool::byte2Int(page+off, 1);
+	indexinfo.indexType = indexType;
+
+	return indexinfo;
+}
+
+
 int IndexManager::is_dir_exist(const char* dirpath) {
 	 if (dirpath == NULL) {
 		 return -1;

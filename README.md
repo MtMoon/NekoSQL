@@ -57,6 +57,7 @@ This is the course project of *Database System* by MtMoon & magicwish
 
 + 24Byte 索引所属的表名
 + 24Byte 索引所在的字段名
++ 24Byte 索引名
 + 1Byte 建索引字段的类型，0int，1 char
 + 1Byte Tag 第0bit 表示建索引的字段是否是定长，0为定长，1为变长， 第1bit表示该字段见表是是否允许为NULL 0为不允许，1为允许
 + 1Byte 索引类型 0 非簇集不唯一，1非簇集唯一，2簇集索引(默认唯一)
@@ -74,21 +75,22 @@ This is the course project of *Database System* by MtMoon & magicwish
 + Byte 4: 页类型，0 非叶级索引页，1叶级索引页(非簇集索引叶级页), 2 数据页 **这里写在第四个byte，为兼容数据页格式**
 + Byte 5~6:该索引页中的已有的索引行数量
 
-###7. Index Record Line Structure ###
+###7. Index Line Structure ###
 
 >非叶级页的索引行结构，与SQL Server 2000 有一定区别     
 
 >顺序及具体内容具体如下：
 
-+ 1 Byte: Tag 第0bit，0表示索引码值为定长，1表示索引码值为变长
++ 1 Byte: Tag 第0bit，0表示索引码值为定长，1表示索引码值为变长，第1bit，0表示下页为中间页，1表示下页为叶级页
 + 2 Byte: 该行数据总长度
-+ 4 Byte: 下页指针, 存储页号 
++ 4 Byte: 下页指针, 存储页号
++ 1 Byte: NULL位图 **如果建索引的字段不允许null，则无此项** 
 + 2 Byte: 定长码值长度
 + n Byte: 定长码值数据 **若码值为变长，则此部分为0byte**
-+ 2 Byte: 变长列数 **变长码值存在变长列的第一列, 其余列用作非簇集索引叶级页的指针桶**
-+ 1 Byte: NULL位图 **如果建索引的字段不允许null，则无此项**
-+ 2*变长列数: 列偏移数组 **注意，列偏移数组中存储的是每个变长数据列结束位置相对数据行首地址的偏移量**
-+ m Byte: 变长列数据 
++ 2 Byte: 列偏移数组 **注意，列偏移数组中存储的是每个变长数据列结束位置相对数据行首地址的偏移量**
++ m Byte: 变长列数据，存储变长码值
++ 2 Byte: 数据记录指针，页号，用于非簇集索引 **簇集索引无此部分**
++ 2 Byte: 数据记录指针，槽号，用于非簇集索引 **簇集索引无此部分** 
 
 ###8. Index command ###
 

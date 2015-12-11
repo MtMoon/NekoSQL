@@ -355,6 +355,14 @@ int RecordTool::byte2Int(Byte* byte, int size) {
 	return c;
 }
 
+//把size个byte转为str, 要求str指向的数组大小不小于size
+void RecordTool::byte2Str(char* str, Byte* byte, int size) {
+	char* temp = (char*)byte;
+	for (int i=0; i<size; i++) {
+		str[i] = temp[i];
+	}
+}
+
 //获取某个定长字段的位置 first为其在数据行中的起始位置，second表示其列序号
 //注意，只限定长
 LP RecordTool::getSegOffset(TableInfo& tb, string& segname) {
