@@ -414,6 +414,9 @@ vector<LP> DataManager::searchRecordInPage(const char* tablename, const int page
 	//cout << "slot Num: " << slotNum << endl;
 	for (int i=0; i<slotNum; i++) {
 		Data d = getRecordByLP(tablename,  LP(pageorder,i));
+		if (d.first == NULL && d.second == 0) {
+			continue;
+		}
 		if (RecordTool::hasSameSegVal(tb, d, condi, cmpType)) {
 			vec.push_back(LP(pageorder,i));
 		}

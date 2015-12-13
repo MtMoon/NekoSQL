@@ -19,7 +19,7 @@ int main() {
 	//cout << "lalala" << endl;
 	DataManager* dm = new DataManager();
 	dm->setDatabase("test1");
-	TableInfo tb = dm->getTableInfo("test1");
+	TableInfo tb = dm->getTableInfo("user");
 	cout << tb.FN << endl;
 	DP data[3];
 
