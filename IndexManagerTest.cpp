@@ -9,54 +9,50 @@
 #include <iostream>
 #include <cstdlib>
 #include "indexmanager/IndexManager.h"
+#include "datamanager/DataManager.h"
 
 using namespace std;
 
 int main() {
 
-	/*vector<char> vec;
-	vec.push_back('a');
-	vec.push_back('b');
-	vec.push_back('d');
+	//age phonenumber name
+	//cout << "lalala" << endl;
+	DataManager* dm = new DataManager();
+	dm->setDatabase("test1");
+	TableInfo tb = dm->getTableInfo("test1");
+	cout << tb.FN << endl;
+	DP data[3];
 
-	vector<char>::iterator it = vec.begin();
-	int r = 0;
-	vec.erase(it+r);
-	for (int i=0; i<vec.size(); i++) {
-		cout << vec[i] << endl;
-	}
+	Byte ageByte[2];
+	RecordTool::int2Byte(ageByte, 2, 23);
+	Data ageData;
+	ageData.first = ageByte;
+	ageData.second = 2;
 
-	IndexManager* im = new IndexManager();
-	IndexInfo indexinfo;
-	indexinfo.fieldName = "name";
-	indexinfo.fieldType = 1;
-	indexinfo.ifFixed = 0;
-	indexinfo.ifNull = 0;
-	indexinfo.indexName = "index_name";
-	indexinfo.indexType = 2;
-	indexinfo.tableName = "user";*/
+	Data phoneData;
+	phoneData.first = NULL;
+	phoneData.second = 0;
 
-	//im->createIndex("test1", indexinfo);
+	Byte nameByte[3];
+	RecordTool::str2Byte(nameByte,3, "yxy");
+	Data nameData;
+	nameData.first = nameByte;
+	nameData.second = 3;
 
-	BufPageManager* bm;
-	FileManager* fm;
-	fm = new FileManager();
-	bm = new BufPageManager(fm);
+	data[0].first = "age";
+	data[0].second = ageData;
 
-	fm->createFile("fmtest.txt");
+	data[1].first = "phone number";
+	data[1].second = phoneData;
 
-	int fileID;
-	fm->openFile("fmtest.txt", fileID);
-	int index;
-	bm->allocPage(fileID, 2, index, false);
-	bm->markDirty(index);
-	bm->writeBack(index);
+	data[2].first = "name";
+	data[2].second = nameData;
+	int len = 0;
+	cout << "lalala" << endl;
+	Byte* record = RecordTool::makeRecord(tb,len, data, 3 );
+	cout << "len: " << len << endl;
 
-	bm->allocPage(fileID, 3, index, false);
-	bm->markDirty(index);
-	bm->writeBack(index);
 
-	fm->closeFile(fileID);
 
 
 	return 0;

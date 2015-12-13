@@ -45,7 +45,7 @@ public:
 
 	//查询解析模块调用的索引功能函数
 	void setDataBase(string dbName);
-	int insertRecord(ConDP key, Data record);
+	int insertRecord(ConDP key, Data record, TableInfo& tb);
 
 private:
 	//用于数据文件的操作
@@ -87,15 +87,16 @@ private:
 	int upper_bound;
 	//B+Tree相关函数
 	int search(ConDP key); //找到包含key的叶节点页，返回页号
-	bool insert(ConDP key, Data record);
+	bool insert(ConDP key, Data record, TableInfo& tb);
 	bool insert(ConDP key, LP pos);
 	void solveOverflow(int v); //处理上溢页分裂
-	void fillRoot(ConDP key); //插入时根节点为空，填充根节点
+	void fillRoot(ConDP key, int type); //插入时根节点为空，填充根节点 type == 0, 簇集索引， type == 1 非簇集索引
 
 	//B+Tree相关的工具函数
-	int nodeSearch(ConDP key, int v, int& type);
+	int nodeSearch(ConDP key, int v, int& type, int& off);
 	void makeIndexLine(IndexInfo& indexinfo, ConDP key, int type, int pid, LP pos, int lineLen, Byte* line);
 	int calcuIndexLineLen(IndexInfo& indexinfo, ConDP key, int type); //计算索行的长度
+	void writePageMeta(Byte* page, int type); //填充页头，0为数据页，1为索引页
 
 
 };

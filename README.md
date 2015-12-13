@@ -36,6 +36,7 @@ This is the course project of *Database System* by MtMoon & magicwish
 + Byte 0~1: 该页剩余可用字节数
 + Byte 2~3: 该页槽数 **包括被回收(值为-1)的槽**
 + Byte 4: 页类型，0 非叶级索引页，1叶级索引页(非簇集索引叶级页), 2 数据页
++ Byte 7~10:B+数上页指针，若不建所以则忽略此项
 
 ###4. Record Line Structure ###
 
@@ -75,6 +76,7 @@ This is the course project of *Database System* by MtMoon & magicwish
 + Byte 2: Tag A 表示索引lever，0,1,...n 0为根页
 + Byte 4: 页类型，0 非叶级索引页，1叶级索引页(非簇集索引叶级页), 2 数据页 **这里写在第四个byte，为兼容数据页格式**
 + Byte 5~6:该索引页中的已有的索引行数量
++ Byte 7~10:上页指针，根页此值为0
 
 ###7. Index Line Structure ###
 

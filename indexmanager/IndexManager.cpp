@@ -98,13 +98,7 @@ int IndexManager::createIndex( IndexInfo indexInfo) {
 	off = 0;
 	ibm->allocPage(fileID, 1, index, false);
 	page = (Byte*)ibm->addr[index];
-	RecordTool::int2Byte(page+off, 2,  PAGE_SIZE-96);
-	off += 2;
-	RecordTool::int2Byte(page+off, 1,  0); //level0即根页
-	off += 2;
-	RecordTool::int2Byte(page+off, 1,  0); //页类型，非页级索引页
-	off += 1;
-	RecordTool::int2Byte(page+off, 2,  0); //已有索引行数量为0
+	writePageMeta(page, 1);
 	ibm->markDirty(index);
 	ibm->writeBack(index);
 
@@ -146,7 +140,7 @@ void  IndexManager::setDataBase(string dbName) {
 	currentIndexInfo.legal = false;
 }
 
-int IndexManager::insertRecord(ConDP key, Data record) {
+int IndexManager::insertRecord(ConDP key, Data record, TableInfo& tb) {
 
 }
 
@@ -227,7 +221,7 @@ int IndexManager::reBuildData(IndexInfo indexinfo) {
 			//插入新的记录文件
 			//获取key
 			ConDP key = RecordTool::getFieldValueInRecord(tb, Data(line, lineLen), indexinfo.fieldName);
-			insertRecord(key, Data(line, lineLen));
+			insertRecord(key, Data(line, lineLen), tb);
 		}
 		closeIndex(indexinfo.tableName, indexinfo.indexName);
 
@@ -286,9 +280,9 @@ int  IndexManager::search(ConDP key) {
 	//从根节点出发
 	int v = 1; //第0页为meta数据页
 	hot = 0;
-	int next = 0, type = 0;
+	int next = 0, type = 0, pageoff = 0;
 	while (v != -1) {
-		next = nodeSearch(key, v, type);
+		next = nodeSearch(key, v, type, pageoff);
 		if (type == 1) { //若是找到了叶级页，则之间返回
 			return next;
 		}
@@ -299,55 +293,189 @@ int  IndexManager::search(ConDP key) {
 	return -1;
 }
 
-//插入，用于簇集索引，需操作数据页的插入和索引页的插入
-bool IndexManager::insert(ConDP key, Data record) {
+//插入，用于簇集索引，需操作数据页的插入
+//非页级索引页的插入只会发生在fillroot和上溢下溢时
+//对簇集索引的叶级页，slot没有-1，每次插入删除都调整slot和记录行
+bool IndexManager::insert(ConDP key, Data record, TableInfo& tb) {
 	int v = search(key);
 	if (v == -1) { //当v为-1时，说明根节点为空
-		fillRoot(key);
+		fillRoot(key, 0);
 		v = search(key);
 	}
 	assert(v != -1);
 
 	//打开数据页v并找到合适的地方进行插入，可能需要移动后续记录行
-	string tdfilepath = "DataBase/" + currentDB + "/" + currentTable + ".data"; //临时数据文件
+	string tdfilepath = "DataBase/" + currentDB + "/" + currentTable + ".data";
 	int fileid;
 	dfm->openFile(tdfilepath.c_str(), fileid);
 	int pageindex;
-	Byte* page = (Byte*)(ibm->getPage(fileid, v, pageindex));
+	Byte* page = (Byte*)(dbm->getPage(fileid, v, pageindex));
+	IndexInfo indexinfo = getCurrentIndexInfo();
+	int spaceLeft = RecordTool::byte2Int(page, 2);
+	int slotNum = RecordTool::byte2Int(page+2, 2);
+	int leftstart = PAGE_SIZE-slotNum*2-spaceLeft;
 
+	int which = 0;
+	int start = 96;
+	for (int i = 0; i < slotNum; i++) { //顺序遍历slot
+		int slotOffset = PAGE_SIZE-(i+1)*2;
+		int slotVal = RecordTool::byte2Int(page+slotOffset, 2);
+		int off = slotVal;
+		//获取记录长度
+		int lineLen = 0;
+		lineLen = RecordTool::byte2Int(page+off+1, 2);
+		Byte line[lineLen];
+		RecordTool::copyByte(line, page+off, lineLen);
+		ConDP linekey = RecordTool::getFieldValueInRecord(tb, Data(line, lineLen), key.name);
+		if ((key.type == 0 && key.value_int<linekey.value_int) || (key.type == 1 && key.value_str < linekey.value_str)) {
+			which = i;
+			start = slotVal;
+			break;
+		}
+	}
 
+	if (slotNum != 0 && which == 0) { //带插入key值大于记录中最大的key
+		which = slotNum;
+		start = leftstart;
+	}
+
+	//移动记录后续记录行
+	for (int i=leftstart-1; i>= start; i++) {
+		page[i+record.second] = page[i];
+	}
+
+	//插入记录
+	RecordTool::copyByte(page+start, record.first, record.second);
+
+	//修改后续槽值
+	for (int i=which; i<slotNum; i++) {
+		int slotOffset = PAGE_SIZE-(i+1)*2;
+		//原槽值
+		int slotVal = RecordTool::byte2Int(page+slotOffset, 2);
+		RecordTool::int2Byte(page+slotOffset, 2, slotVal+record.second);
+	}
+	//向前移动槽
+	int slotStart = PAGE_SIZE-(slotNum-1+1)*2;
+	int slotEnd =  PAGE_SIZE-(which+1)*2;
+	for (int i=slotStart; i<slotEnd+2; i++) {
+		page[i-2] = page[i];
+	}
+
+	//写入新槽
+	RecordTool::int2Byte(page+slotEnd, 2, start);
+	//修改槽数和剩余Byte数
+	RecordTool::int2Byte(page, 2, spaceLeft-record.second);
+	RecordTool::int2Byte(page+2,2, slotNum+1);
 	//写入数据
 	dbm->markDirty(pageindex);
 	dbm->writeBack(pageindex);
 	dfm->closeFile(fileid);
+
+	solveOverflow(v);
+
 }
 
-//插入，用于非簇集索引，用于插入倒页级索引页
+//插入，用于非簇集索引，用于插入到页级索引页
 bool IndexManager::insert(ConDP key, LP pos) {
+	int v = search(key);
+	if (v == -1) { //当v为-1时，说明根节点为空
+		fillRoot(key, 1);
+		v = search(key);
+	}
+	assert(v != -1);
+	//查找页级索引页
+	int type = 0, pageoff = 96;
+	nodeSearch(key, v, type, pageoff);
+	int pageindex = 0;
+	ibm->getPage(currentFileID, v, pageindex);
+	Byte* page = (Byte*)ibm->addr[pageindex];
+	//构造叶节点索引行
+	IndexInfo indexinfo = getCurrentIndexInfo();
+	int lineLen = calcuIndexLineLen(indexinfo, key, 1);
+	Byte index[lineLen];
+	makeIndexLine(indexinfo, key, 1, 0, pos, lineLen, index);
+
+
+	int spaceLeft = RecordTool::byte2Int(page,2);
+	int lineNum = RecordTool::byte2Int(page+5,2);
+	//移动记录行
+	if (lineNum != 0) {
+		int leftStart = PAGE_SIZE - spaceLeft;
+		for (int i=pageoff; i<leftStart; i++) {
+			page[i+lineLen] = page[i];
+		}
+	}
+
+	RecordTool::copyByte(page+pageoff, index, lineLen);
+	//修改剩余字节数和索引行数
+	RecordTool::int2Byte(page,2, spaceLeft-lineLen);
+	RecordTool::int2Byte(page+5, 2, lineNum+1);
+
+	ibm->markDirty(pageindex);
+	ibm->writeBack(pageindex);
+
+	solveOverflow(v);
+
+
+}
+
+//处理上溢页分裂
+void IndexManager::solveOverflow(int v) {
 
 }
 
 //插入时根节点为空，填充根节点
-void IndexManager::fillRoot(ConDP key) {
-	//插入两个索引行，并申请两个新的数据页
-	string dfilepath = "DataBase/" + currentDB + "/" + currentTable + ".data";
-	int datapageNum = 0;
-	datapageNum = getFilePageNum(dfilepath.c_str());
+//type == 0, 簇集索引， type == 1 非簇集索引
+void IndexManager::fillRoot(ConDP key, int type) {
 
-	int pid1 = datapageNum;
-	int pid2 = datapageNum;
+	int pid1 = -1;
+	int pid2 = -1;
+	int pageNum = 0, fileID, index;
+	if (type == 0) {
 
-	int fileID;
-	dfm->openFile(dfilepath.c_str(), fileID);
-	int index;
-	dbm->allocPage(fileID, pid1, index, false);
-	dbm->markDirty(index);
-	dbm->writeBack(index);
+		//插入两个索引行，并申请两个新的数据页
+		string dfilepath = "DataBase/" + currentDB + "/" + currentTable + ".data";
+		pageNum = getFilePageNum(dfilepath.c_str());
 
-	dbm->allocPage(fileID, pid2, index, false);
-	dbm->markDirty(index);
-	dbm->writeBack(index);
-	dfm->closeFile(fileID);
+		pid1 = pageNum;
+		pid2 = pageNum+1;
+
+
+		dfm->openFile(dfilepath.c_str(), fileID);
+		dbm->allocPage(fileID, pid1, index, false);
+		Byte* page = (Byte*)(dbm->getPage(fileID, pid1, index));
+		writePageMeta(page, 0);
+		dbm->markDirty(index);
+		dbm->writeBack(index);
+
+		dbm->allocPage(fileID, pid2, index, false);
+		page = (Byte*)(dbm->getPage(fileID, pid2, index));
+		writePageMeta(page, 0);
+		dbm->markDirty(index);
+		dbm->writeBack(index);
+		dfm->closeFile(fileID);
+
+	} else if (type == 1) { //非簇集索引
+
+		string ifilepath = "DataBase/" + currentDB + "/" + currentIndex+ "_" + currentTable + ".index";
+		pageNum = getFilePageNum(ifilepath.c_str());
+
+		pid1 = pageNum;
+		pid2 = pageNum+1;
+		openIndex(currentTable, currentIndex);
+		ibm->allocPage(fileID, pid1, index, false);
+		Byte* page = (Byte*)(ibm->getPage(fileID, pid1, index));
+		writePageMeta(page, 1);
+		ibm->markDirty(index);
+		ibm->writeBack(index);
+
+		ibm->allocPage(fileID, pid2, index, false);
+		page = (Byte*)(ibm->getPage(fileID, pid2, index));
+		writePageMeta(page, 1);
+		ibm->markDirty(index);
+		ibm->writeBack(index);
+
+	}
 
 	//构造两个索引行
 	IndexInfo indexinfo = getCurrentIndexInfo();
@@ -367,11 +495,6 @@ void IndexManager::fillRoot(ConDP key) {
 
 	ibm->markDirty(index);
 	ibm->writeBack(index);
-}
-
-//处理上溢页分裂
-void IndexManager::solveOverflow(int v) {
-
 }
 
 //B+Tree相关的工具函数
@@ -464,11 +587,14 @@ void IndexManager::makeIndexLine(IndexInfo& indexinfo, ConDP key, int type, int 
 //return 返回下页页号
 // type 下页类型，0 中间索引页，1 叶级页
 //(具体是叶级索引页还是叶级数据页，通过indexinfo判断)
-int  IndexManager::nodeSearch(ConDP conkey, int v, int& type) {
+// pageoff conkey值在节点中的偏移量
+int  IndexManager::nodeSearch(ConDP conkey, int v, int& type, int& pageoff) {
 	int pageindex = 0;
 	ibm->getPage(currentFileID, v, pageindex);
 	Byte* page = (Byte*)ibm->addr[pageindex];
 	IndexInfo indexinfo = getCurrentIndexInfo();
+	int off = 96;
+	pageoff = off;
 	//遍历索引页中的所有索引行
 	int lineNum = 0;
 	type = -1;
@@ -477,7 +603,6 @@ int  IndexManager::nodeSearch(ConDP conkey, int v, int& type) {
 		return -1;
 	}
 	int count = 0;
-	int off = 96;
 	Byte* line = NULL;
 	while (count < lineNum-1) { //最后一个指针单独处理
 		line = page + off;
@@ -537,8 +662,23 @@ int  IndexManager::nodeSearch(ConDP conkey, int v, int& type) {
 	//至此，则为待检索码值大于等于该页中最大码值
 	//返回又边界指针
 	int next = RecordTool::byte2Int(page+off+3, 4);
+	pageoff = PAGE_SIZE-RecordTool::byte2Int(page,2);
 	return next;
 
+}
+
+//填充页头，0为数据页，1为索引页
+void IndexManager::writePageMeta(Byte* page, int type) {
+	if (type == 0) {
+		RecordTool::int2Byte(page,2, PAGE_SIZE-96);
+		RecordTool::int2Byte(page+2, 2, 0);
+		RecordTool::int2Byte(page+4, 1, 2);
+	} else if (type == 1) {
+		RecordTool::int2Byte(page,2, PAGE_SIZE-96);
+		RecordTool::int2Byte(page+2, 1, 1);
+		RecordTool::int2Byte(page+4, 1, 1);
+		RecordTool::int2Byte(page+5, 2, 0);
+	}
 }
 
 

@@ -16,15 +16,23 @@ using namespace std;
 //空串: Data.first = 全0bit(定长数据则定长的0比特流，变长数据则非NULL即可), Data.second = 0
 //NULL: Data.first = NULL, Data.second = 0
 Byte* RecordTool::makeRecord(TableInfo tb, int& len, DP data[], int size) {
-
+	//printf("lalala2\n");
 	//计算记录行长度
 	len = 9;
 	int nullLen = ceil(double(tb.FN + tb.VN) / 8);
 	len += nullLen;
 	len += 2*tb.VN;
-	for (int i=0; i<size; i++) {
+
+	for (int i=0; i<tb.FN; i++) {
+		len += tb.Flen[i];
+	}
+
+	for (int i=tb.FN; i<size; i++) {
 		len += data[i].second.second;
 	}
+
+	printf("len: %d \n", len);
+
 	Byte* line = new Byte[len];
 
 	//make tag  1Byte
@@ -66,7 +74,7 @@ Byte* RecordTool::makeRecord(TableInfo tb, int& len, DP data[], int size) {
 			}
 		}
 	}
-
+	//printf("lalala2\n");
 	//定长列数
 	int colNum = tb.FN;
 	temp = (Byte*)&colNum;
@@ -113,9 +121,9 @@ Byte* RecordTool::makeRecord(TableInfo tb, int& len, DP data[], int size) {
 	assert(len == count);
 
 	//清除data数组中数据
-	for (int i=0; i<size; i++) {
+	/*for (int i=0; i<size; i++) {
 		delete [] data[i].second.first;
-	}
+	}*/
 
 	return line;
 }
