@@ -13,7 +13,7 @@
 #include <cstring>
 using namespace std;
 
-/*int main() {
+int main() {
 
 	DataManager* dm = new DataManager();
 	dm->setDatabase("test1");
@@ -27,12 +27,8 @@ using namespace std;
 
 	DP phoneDp;
 	phoneDp.first = "phone number";
-	Byte* b = new Byte[11];
-	for (int i=0; i<11; i++) {
-		b[i] = 0;
-	}
-	phoneDp.second.first = b;
-	phoneDp.second.second = 11;
+	phoneDp.second.first = NULL;
+	phoneDp.second.second = 0;
 
 	DP nameDp;
 	nameDp.first = "name";
@@ -46,21 +42,21 @@ using namespace std;
 
 	TableInfo tb = dm->getTableInfo("user");
 
-	dm->insertRecord("user", array, 3);
+	//dm->insertRecord("user", array, 3);
 	//dm->deleteRecord("user", LP(1,2));
-	vector<LP> LPVec = dm->getAllLPInTable("user");
+	/*vector<LP> LPVec = dm->getAllLPInTable("user");
 	for (int i=0; i<LPVec.size(); i++) {
 		cout << LPVec[i].first << " " << LPVec[i].second << endl;
-	}
+	}*/
 
 	ConDP namecondi;
-	namecondi.name = "age";
-	namecondi.type = 0;
+	namecondi.name = "phone number";
+	namecondi.type = 1;
 	namecondi.value_str = "";
 	namecondi.value_int = 23;
-	vector<LP> ans = dm->searchRecord("user", namecondi,0);
+	namecondi.isnull = true;
+	vector<LP> ans = dm->searchRecord("user", namecondi, 3);
 	cout << "ans size: " << ans.size() << endl;
-	int tsize = 3;
 	for (int i=0; i<ans.size(); i++) {
 		LP a = ans[i];
 		cout << a.first << " " << a.second << endl;
@@ -70,7 +66,7 @@ using namespace std;
 	}
 
 	//dm->deleteRecord("user", LP(1,0));
-	DP updateDp[1];
+	/*DP updateDp[1];
 	DP namedp;
 	namedp.first = "name";
 	Data newname = RecordTool::str2Data("magic", 5);
@@ -93,11 +89,10 @@ using namespace std;
 	}
 	dname.first = bname;
 	dname.second = 5;
-	cout << RecordTool::data2Str(dname) << endl;
+	cout << RecordTool::data2Str(dname) << endl;*/
 
 
 
 	return 0;
 }
-*/
 

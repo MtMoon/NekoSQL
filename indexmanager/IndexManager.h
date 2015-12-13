@@ -89,14 +89,16 @@ private:
 	int search(ConDP key); //找到包含key的叶节点页，返回页号
 	bool insert(ConDP key, Data record, TableInfo& tb);
 	bool insert(ConDP key, LP pos);
-	void solveOverflow(int v); //处理上溢页分裂
+	void solveOverflow(int v, int type); //处理上溢页分裂 type 0 为数据页 1为索引页
+	int solveOverflow_DataPage(int v); //专门处理数据页的分裂
+	int solveOverflow_IndexPage(int v); //专门处理索引页的分裂
 	void fillRoot(ConDP key, int type); //插入时根节点为空，填充根节点 type == 0, 簇集索引， type == 1 非簇集索引
 
 	//B+Tree相关的工具函数
 	int nodeSearch(ConDP key, int v, int& type, int& off);
 	void makeIndexLine(IndexInfo& indexinfo, ConDP key, int type, int pid, LP pos, int lineLen, Byte* line);
 	int calcuIndexLineLen(IndexInfo& indexinfo, ConDP key, int type); //计算索行的长度
-	void writePageMeta(Byte* page, int type); //填充页头，0为数据页，1为索引页
+	void writePageMeta(Byte* page, int type, int parent); //填充页头，0为数据页，1索引根页，2 索引中间页，3 索引叶级页(非簇集)
 
 
 };

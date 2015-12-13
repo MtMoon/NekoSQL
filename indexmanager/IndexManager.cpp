@@ -98,7 +98,7 @@ int IndexManager::createIndex( IndexInfo indexInfo) {
 	off = 0;
 	ibm->allocPage(fileID, 1, index, false);
 	page = (Byte*)ibm->addr[index];
-	writePageMeta(page, 1);
+	writePageMeta(page, 1, 0);
 	ibm->markDirty(index);
 	ibm->writeBack(index);
 
@@ -371,7 +371,7 @@ bool IndexManager::insert(ConDP key, Data record, TableInfo& tb) {
 	dbm->writeBack(pageindex);
 	dfm->closeFile(fileid);
 
-	solveOverflow(v);
+	solveOverflow(v, 0);
 
 }
 
@@ -414,13 +414,40 @@ bool IndexManager::insert(ConDP key, LP pos) {
 	ibm->markDirty(pageindex);
 	ibm->writeBack(pageindex);
 
-	solveOverflow(v);
-
-
+	solveOverflow(v, 1);
 }
 
 //处理上溢页分裂
-void IndexManager::solveOverflow(int v) {
+//type 0 为数据页 1为索引页
+void IndexManager::solveOverflow(int v, int type) {
+	if (v<=0 || (type != 0 && type != 1)) {
+		return;
+	}
+	int parent = 0;
+	if (type == 0) {
+		parent = solveOverflow_DataPage(v);
+	} else if (type == 1) {
+		parent = solveOverflow_IndexPage(v);
+	}
+	solveOverflow(parent, 1);
+}
+
+//专门处理数据页的分裂
+int IndexManager::solveOverflow_DataPage(int v) {
+	string tdfilepath = "DataBase/" + currentDB + "/" + currentTable + ".data";
+	int fileid, 	pageindex;;
+	dfm->openFile(tdfilepath.c_str(), fileid);
+	Byte* page = (Byte*)(dbm->getPage(fileid, v, pageindex));
+	int slotNum = RecordTool::byte2Int(page+2, 2); //簇集索引重构的数据页里，槽都是非-1的，即槽数为实际的记录数
+	if (slotNum<=lower_bound) {
+		return 0;
+	}
+	//需要分裂
+
+}
+
+//专门处理索引页的分裂
+int IndexManager::solveOverflow_IndexPage(int v) {
 
 }
 
@@ -444,13 +471,13 @@ void IndexManager::fillRoot(ConDP key, int type) {
 		dfm->openFile(dfilepath.c_str(), fileID);
 		dbm->allocPage(fileID, pid1, index, false);
 		Byte* page = (Byte*)(dbm->getPage(fileID, pid1, index));
-		writePageMeta(page, 0);
+		writePageMeta(page, 0, 1);
 		dbm->markDirty(index);
 		dbm->writeBack(index);
 
 		dbm->allocPage(fileID, pid2, index, false);
 		page = (Byte*)(dbm->getPage(fileID, pid2, index));
-		writePageMeta(page, 0);
+		writePageMeta(page, 0, 1);
 		dbm->markDirty(index);
 		dbm->writeBack(index);
 		dfm->closeFile(fileID);
@@ -465,13 +492,13 @@ void IndexManager::fillRoot(ConDP key, int type) {
 		openIndex(currentTable, currentIndex);
 		ibm->allocPage(fileID, pid1, index, false);
 		Byte* page = (Byte*)(ibm->getPage(fileID, pid1, index));
-		writePageMeta(page, 1);
+		writePageMeta(page, 1, 1);
 		ibm->markDirty(index);
 		ibm->writeBack(index);
 
 		ibm->allocPage(fileID, pid2, index, false);
 		page = (Byte*)(ibm->getPage(fileID, pid2, index));
-		writePageMeta(page, 1);
+		writePageMeta(page, 1, 1);
 		ibm->markDirty(index);
 		ibm->writeBack(index);
 
@@ -667,17 +694,29 @@ int  IndexManager::nodeSearch(ConDP conkey, int v, int& type, int& pageoff) {
 
 }
 
-//填充页头，0为数据页，1为索引页
-void IndexManager::writePageMeta(Byte* page, int type) {
+
+//填充页头，0为数据页，1索引根页，2 索引中间页，3 索引叶级页(非簇集)
+//parent 父节点页号，如果本身为根页，则paren为0，因为根页id为1，第0页是meta页
+void IndexManager::writePageMeta(Byte* page, int type, int parent) {
 	if (type == 0) {
 		RecordTool::int2Byte(page,2, PAGE_SIZE-96);
 		RecordTool::int2Byte(page+2, 2, 0);
 		RecordTool::int2Byte(page+4, 1, 2);
-	} else if (type == 1) {
+		RecordTool::int2Byte(page+7, 4, parent);
+	} else {
 		RecordTool::int2Byte(page,2, PAGE_SIZE-96);
-		RecordTool::int2Byte(page+2, 1, 1);
-		RecordTool::int2Byte(page+4, 1, 1);
+		if (type == 1) {
+			RecordTool::int2Byte(page+2, 1, 0);
+		} else {
+			RecordTool::int2Byte(page+2, 1, 1);
+		}
+		if (type == 3) {
+			RecordTool::int2Byte(page+4, 1, 1);
+		} else {
+			RecordTool::int2Byte(page+4, 1, 0);
+		}
 		RecordTool::int2Byte(page+5, 2, 0);
+		RecordTool::int2Byte(page+7, 4, parent);
 	}
 }
 

@@ -118,7 +118,7 @@ Byte* RecordTool::makeRecord(TableInfo tb, int& len, DP data[], int size) {
 			}
 	}
 
-	assert(len == count);
+	//assert(len == count);
 
 	//清除data数组中数据
 	/*for (int i=0; i<size; i++) {
@@ -165,6 +165,8 @@ bool RecordTool::hasSameSegVal(TableInfo& tb, Data record, ConDP condi, int cmpT
 	bool ans = false;
 
 	if ((cmpType != 3 && fieldValue.isnull) || (condi.type != fieldValue.type)) {
+		printf("condi.type %d,  fieldValue.type %d \ n", condi.type, fieldValue.type);
+		printf("is null %d \n", fieldValue.isnull);
 		return ans;
 	}
 	//printf("lalal \n");
@@ -236,6 +238,11 @@ ConDP RecordTool::getFieldValueInRecord(TableInfo& tb, Data record, string field
 				break;
 			}
 		}
+		if (fieldType == 0) {
+			ans.type = fieldType;
+		} else if (fieldType == 1 || fieldType == 2) {
+			ans.type = 1;
+		}
 		//判断是否为null
 		int whichByte = (tb.FN+col) / 8;
 		int whichBit = (tb.FN+col) % 8;
@@ -259,9 +266,14 @@ ConDP RecordTool::getFieldValueInRecord(TableInfo& tb, Data record, string field
 		temp = line + off.first;
 		start = off.first;
 		fieldType = tb.types[off.second];
+		if (fieldType == 0) {
+			ans.type = fieldType;
+		} else if (fieldType == 1 || fieldType == 2) {
+			ans.type = 1;
+		}
 
-		int whichByte = (tb.FN+off.second) / 8;
-		int whichBit = (tb.FN+off.second) % 8;
+		int whichByte = (off.second) / 8;
+		int whichBit = (off.second) % 8;
 		int ifnull = (nullByte[whichByte] >> whichBit) & 1;
 		if (ifnull == 1) {
 				return ans;
@@ -279,11 +291,7 @@ ConDP RecordTool::getFieldValueInRecord(TableInfo& tb, Data record, string field
 	int len = end - start;
 	Byte data[len];
 	copyByte(data, line+start, len);
-	if (fieldType == 0) {
-		ans.type = fieldType;
-	} else if (fieldType == 1 || fieldType == 2) {
-		ans.type = 1;
-	}
+
 	ans.isnull = false;
 	ans.name = fieldName;
 	if (fieldType == 0) {

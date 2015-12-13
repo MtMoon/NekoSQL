@@ -13,7 +13,7 @@
 
 using namespace std;
 
-int main() {
+/*int main() {
 
 	//age phonenumber name
 	//cout << "lalala" << endl;
@@ -56,6 +56,6 @@ int main() {
 
 
 	return 0;
-}
+}*/
 
 
