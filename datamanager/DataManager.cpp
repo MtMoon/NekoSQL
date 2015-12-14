@@ -81,7 +81,7 @@ bool DataManager::closeFile(const char* filename) {
 //NULL位图中会区别空串和NULL
 //数据类型的对应,是否可以为NULL需在上层检查
 //若要支持NULL值字段不在sql语句中显示写出，需要上层转换
-bool DataManager::insertRecord(const char* tablename, DP data[], const int size) {
+bool DataManager::insertRecord(const char* tablename, DP data[], const int size, LP& rpos) {
 	
 	int len = 0; //数据记录长度
 	Byte* record = NULL;
@@ -111,6 +111,7 @@ bool DataManager::insertRecord(const char* tablename, DP data[], const int size)
 
 	if (pageID != -1)
 	{
+		rpos.first = pageID;
 		Byte* buf = (Byte*)(bm->getPage(currentFileID, pageID, pageindex));
 		int spaceLeft = RecordTool::byte2Int(buf, 2);
 		int slotNum = RecordTool::byte2Int(buf+2, 2);
@@ -125,6 +126,7 @@ bool DataManager::insertRecord(const char* tablename, DP data[], const int size)
 				RecordTool::int2Byte(buf+slotOffset, 2, start);
 				RecordTool::copyByte(buf+start, record, len);
 				RecordTool::int2Byte(buf, 2, spaceLeft-len);
+				rpos.second = i;
 				flag = true;
 				break;
 			}
@@ -140,12 +142,14 @@ bool DataManager::insertRecord(const char* tablename, DP data[], const int size)
 	else
 	{
 		pageID = newNormalPage(tablename, currentFileID);
+		rpos.first = pageID;
 		Byte* buf = (Byte*)(bm->getPage(currentFileID, pageID, pageindex));
 		int spaceLeft = RecordTool::byte2Int(buf, 2);
 		RecordTool::int2Byte(buf+PAGE_SIZE-2, 2, 96); //changed by yxy
 		RecordTool::copyByte(buf+96, record, len); //changed by yxy
 		RecordTool::int2Byte(buf, 2, spaceLeft-len-2);
 		RecordTool::int2Byte(buf+2, 2, 1);
+		rpos.second = 0;
 	}
 	bm->markDirty(pageindex);
 	bm->writeBack(pageindex);
@@ -469,9 +473,10 @@ int DataManager::getPageLeftSize(int pageindex) {
 //获取对应表的信息
 TableInfo DataManager::getTableInfo(const char* tablename) {
 	string name(tablename);
-	if (tables.find(name) != tables.end()) {
-		return tables[name];
+	if (tables.find(string(name)) != tables.end()) {
+		return tables[string(name)];
 	} else {
+		//cout << "not fount in map" << endl;
 		return loadTableInfo(tablename);
 	}
 }
@@ -595,9 +600,7 @@ TableInfo DataManager::loadTableInfo(const char* tablename) {
 		//cout << "nullmap: " << int(tb.nullMap[i]) << endl;
 		off++;
 	}
-
-
-
+	tables.insert(pair<string, TableInfo>(string(tablename), tb));
 	return tb;
 }
 
@@ -700,6 +703,7 @@ void DataManager::writeTableInfo(string tableName, TableInfo tb) {
 	bm->markDirty(pageindex);
 	bm->writeBack(pageindex);
 	fm->closeFile(fileID);
+	bm->close();
 
 
 }
@@ -758,12 +762,15 @@ vector<KP> DataManager::getAllKPInTable(const char* tablename, string fieldName)
 int DataManager::openTable(const char* tableName) {
 	string tbStr = string(tableName);
 	if (tbStr != currentTable) {
-		if ("" != tbStr && currentFileID != -1) {
+		if ("" != tbStr && currentFileID != -1 && currentTable != "") {
+			//cout << "close table: " << currentTable << endl;
 			fm->closeFile(currentFileID);
+			bm->close();
 		}
-		string filepath(tableName);
-		filepath = "DataBase/" + currentBase + "/" + filepath + ".data";
+		string filepath = "DataBase/" + currentBase + "/" + tbStr + ".data";
+		//cout << "filepath: " << filepath << endl;
 		fm->openFile(filepath.c_str(), currentFileID);
+		currentTable = tbStr;
 		return 1;
 	}
 	assert(currentFileID >= 0);
@@ -780,6 +787,7 @@ int DataManager::closeTable(const char* tableName) {
 	}
 
 	fm->closeFile(currentFileID);
+	bm->close();
 	currentFileID = -1;
 	currentTable = "";
 	return 1;
@@ -798,6 +806,7 @@ bool DataManager::newEmptySpecialPage(const char* tablename)
 	bm->markDirty(index);
 	bm->writeBack(index);
 	fm->closeFile(fileID);
+	bm->close();
 	return true;
 }
 
@@ -849,4 +858,5 @@ void DataManager::pageInfo(const char* tablename, int pageID)
 		
 	}
 	fm->closeFile(fileID);
+	bm->close();
 }

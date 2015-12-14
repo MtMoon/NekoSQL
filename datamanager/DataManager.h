@@ -45,7 +45,7 @@ public:
 	//记录操作函数
 
 	//插入一条记录
-	bool insertRecord(const char* tablename, DP data[], const int size);
+	bool insertRecord(const char* tablename, DP data[], const int size, LP& rpos);
 	//bool insertRecord(const char* tablename, const Byte* record, int len);
 
 	//重载函数 直接以位置和Byte流插入

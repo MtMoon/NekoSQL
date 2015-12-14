@@ -20,7 +20,7 @@ using namespace std;
 
 	vector<FieldInfo> fieldvec;
 	FieldInfo f1;
-	f1.fieldName = "name";
+	f1.fieldName = "name2";
 	f1.fieldType = 2;
 	f1.fieldSize = 10;
 	f1.ifNull = false;
@@ -28,7 +28,7 @@ using namespace std;
 	fieldvec.push_back(f1);
 
 	FieldInfo f2;
-	f2.fieldName = "age";
+	f2.fieldName = "age2";
 	f2.fieldType = 0;
 	f2.fieldSize = 2;
 	f2.ifNull = false;
@@ -36,14 +36,14 @@ using namespace std;
 	fieldvec.push_back(f2);
 
 	FieldInfo f3;
-	f3.fieldName = "phone number";
+	f3.fieldName = "phone number2";
 	f3.fieldType = 1;
 	f3.fieldSize = 11;
 	f3.ifNull = true;
 	f3.key = 0;
 	fieldvec.push_back(f3);
 
-	cout << "create table: " << sm.createTable("user", fieldvec) << endl;
+	cout << "create table: " << sm.createTable("user2", fieldvec) << endl;
 	cout << "准备读取" << endl;
 	//读取
 	int flag = -1;

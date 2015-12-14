@@ -112,6 +112,7 @@ int IndexManager::createIndex( IndexInfo indexInfo) {
 	ibm->writeBack(index);
 
 	ifm->closeFile(fileID);
+	ibm->close();
 	addIndexInfo(indexInfo);
 
 	reBuildData(indexInfo);
@@ -277,6 +278,7 @@ int  IndexManager::openIndex(string tableName, string indexName) {
 	if (tableName != currentTable || indexName != currentIndex) {
 		if ("" != tableName && "" != indexName && currentFileID != -1) {
 			ifm->closeFile(currentFileID);
+			ibm->close();
 		}
 		string filepath = "";
 		filepath = "DataBase/" + currentDB + "/" + indexName + "_" + tableName + ".index";
@@ -298,6 +300,7 @@ int  IndexManager::closeIndex( string tableName, string indexName) {
 		return 0;
 	}
 	ifm->closeFile(currentFileID);
+	ibm->close();
 	currentFileID = -1;
 	currentTable = "";
 	currentIndex = "";

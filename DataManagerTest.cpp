@@ -18,6 +18,12 @@ int main() {
 	DataManager* dm = new DataManager();
 	dm->setDatabase("test1");
 
+	//TableInfo tb1 = dm->getTableInfo("user");
+	//TableInfo tb2 = dm->getTableInfo("user2");
+
+	//cout << tb1.Fname[0] << endl;
+	//cout << tb2.Fname[0] << endl;
+
 	// test record1
 
 	DP ageDp;
@@ -41,13 +47,13 @@ int main() {
 	array[1] = phoneDp;
 
 	TableInfo tb = dm->getTableInfo("user");
-
-	//dm->insertRecord("user", array, 3);
+	LP rpos;
+	dm->insertRecord("user", array, 3, rpos);
 	//dm->deleteRecord("user", LP(1,2));
-	/*vector<LP> LPVec = dm->getAllLPInTable("user");
+	vector<LP> LPVec = dm->getAllLPInTable("user");
 	for (int i=0; i<LPVec.size(); i++) {
 		cout << LPVec[i].first << " " << LPVec[i].second << endl;
-	}*/
+	}
 
 	ConDP namecondi;
 	namecondi.name = "phone number";
@@ -57,39 +63,16 @@ int main() {
 	namecondi.isnull = true;
 	vector<LP> ans = dm->searchRecord("user", namecondi, 3);
 	cout << "ans size: " << ans.size() << endl;
-	/*for (int i=0; i<ans.size(); i++) {
+	for (int i=0; i<ans.size(); i++) {
 		LP a = ans[i];
 		cout << a.first << " " << a.second << endl;
-		Data d = dm->getRecordByLP("user", a);
-		RecordTool::printRecord(tb, d);
+		//Data d = dm->getRecordByLP("user", a);
+		//	RecordTool::printRecord(tb, d);
 
-	}*/
+	}
 
 	//dm->deleteRecord("user", LP(1,0));
-	/*DP updateDp[1];
-	DP namedp;
-	namedp.first = "name";
-	Data newname = RecordTool::str2Data("magic", 5);
-	namedp.second = newname;
-	updateDp[0] = namedp;
 
-	cout << "更新后的搜索结果" << endl;
-	dm->updateRecord("user", LP(1,0), updateDp, 1);
-	vector<LP> ans = dm->searchRecord("user", namedp);
-	cout << ans.size() << endl;
-	LP a = ans[0];
-	cout << a.first << " " << a.second << endl;
-
-	Data d = dm->getRecordByLP("user", a);
-	cout << "record size: " << d.second << endl;
-	Data dname;
-	Byte* bname = new Byte[5];
-	for (int i=0; i<5; i++) {
-		bname[i] = d.first[27+i];
-	}
-	dname.first = bname;
-	dname.second = 5;
-	cout << RecordTool::data2Str(dname) << endl;*/
 
 
 
