@@ -37,6 +37,8 @@ struct condidp { //专门用户search的结构体，用于值的比较
 
 typedef struct condidp ConDP;
 
+typedef pair<LP, ConDP> KP; //key pair, 包含记录行的位置以及码值，用于索引模块
+
 /**
  *定义一个表的固定基本信息
  *这部分信息存在表对应文件的第一页

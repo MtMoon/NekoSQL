@@ -57,13 +57,13 @@ int main() {
 	namecondi.isnull = true;
 	vector<LP> ans = dm->searchRecord("user", namecondi, 3);
 	cout << "ans size: " << ans.size() << endl;
-	for (int i=0; i<ans.size(); i++) {
+	/*for (int i=0; i<ans.size(); i++) {
 		LP a = ans[i];
 		cout << a.first << " " << a.second << endl;
 		Data d = dm->getRecordByLP("user", a);
 		RecordTool::printRecord(tb, d);
 
-	}
+	}*/
 
 	//dm->deleteRecord("user", LP(1,0));
 	/*DP updateDp[1];

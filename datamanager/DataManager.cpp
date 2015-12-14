@@ -737,6 +737,21 @@ vector<LP> DataManager::getAllLPInTable(const char* tablename) {
 	return vec;
 }
 
+//获取一个表里的所有key pair，用于索引模块
+vector<KP> DataManager::getAllKPInTable(const char* tablename, string fieldName) {
+	vector<KP> ans;
+	vector<LP> vec = getAllLPInTable(tablename);
+	int vecSize = vec.size();
+	TableInfo tb = getTableInfo(tablename);
+	for (int i=0; i<vecSize; i++) {
+		Data d = getRecordByLP(tablename, vec[i]);
+		ConDP key = RecordTool::getFieldValueInRecord(tb, d, fieldName);
+		ans.push_back(KP(vec[i], key));
+	}
+
+	return ans;
+}
+
 /**
  * return 0: 该表当前已打开 1:该表当前未打开，已重新打开表
  */

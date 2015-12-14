@@ -9,6 +9,7 @@
 #define INDEXMANAGER_H_
 
 #include "../bufmanager/BufPageManager.h"
+#include "../datamanager/DataManager.h"
 #include "../Tool/RecordTool.h"
 
 struct indexinfo {
@@ -31,7 +32,7 @@ typedef struct indexinfo IndexInfo;
  */
 class IndexManager {
 public:
-	IndexManager();
+	IndexManager(DataManager* datamanager);
 	~IndexManager();
 
 	//用户可以调用的索引定义操作函数
@@ -45,17 +46,16 @@ public:
 
 	//查询解析模块调用的索引功能函数
 	void setDataBase(string dbName);
-	int insertRecord(ConDP key, Data record, TableInfo& tb);
+	int insertRecord(ConDP key, Data record);
 
 private:
-	//用于数据文件的操作
-	BufPageManager* dbm;
-	FileManager* dfm;
 
 	//用于索引文件的操作
 	BufPageManager* ibm;
 	FileManager* ifm;
 
+	//用于对接记录管理模块
+	DataManager* dm;
 
 	string currentDB;
 	string currentTable;
@@ -65,7 +65,7 @@ private:
 	int currentFileID;
 
 	//用于索引操作的函数
-	//重构数据文件
+	//为以有的数据文件建立索引
 	int reBuildData(IndexInfo indexinfo);
 
 	//打开和关闭索引
@@ -76,8 +76,8 @@ private:
 	int is_dir_exist(const char* dirpath);
 	int is_file_exist(const char* filepath);
 	int getFilePageNum(const char* filepath); //获取文件页数
-	TableInfo loadTableInfo(Byte* metaPage); //加载表信息
 	IndexInfo getCurrentIndexInfo();
+	bool ConDPEqual(ConDP key1, ConDP key2); //判断两个key是否相等
 
 	/*----------------------------------------------B+Tree part-----------------------------------*/
 	//B+Tree相关成员变量
@@ -87,18 +87,18 @@ private:
 	int upper_bound;
 	//B+Tree相关函数
 	int search(ConDP key); //找到包含key的叶节点页，返回页号
-	bool insert(ConDP key, Data record, TableInfo& tb);
 	bool insert(ConDP key, LP pos);
-	void solveOverflow(int v, int type); //处理上溢页分裂 type 0 为数据页 1为索引页
-	int solveOverflow_DataPage(int v); //专门处理数据页的分裂
-	int solveOverflow_IndexPage(int v); //专门处理索引页的分裂
-	void fillRoot(ConDP key, int type); //插入时根节点为空，填充根节点 type == 0, 簇集索引， type == 1 非簇集索引
+	void solveOverflow(int v); //处理上溢页分裂
+	void removeLine(ConDP key, LP pos); //删除节点码值
+	void fillRoot(ConDP key); //插入时根节点为空，填充根节点
 
 	//B+Tree相关的工具函数
 	int nodeSearch(ConDP key, int v, int& type, int& off);
 	void makeIndexLine(IndexInfo& indexinfo, ConDP key, int type, int pid, LP pos, int lineLen, Byte* line);
 	int calcuIndexLineLen(IndexInfo& indexinfo, ConDP key, int type); //计算索行的长度
-	void writePageMeta(Byte* page, int type, int parent); //填充页头，0为数据页，1索引根页，2 索引中间页，3 索引叶级页(非簇集)
+	int newIndexPage(int type, int parent); //新开一个索引页，返回页号
+	ConDP getKeyByLine(Byte* line, IndexInfo& indexinfo, LP& pos); //获取key值
+
 
 
 };

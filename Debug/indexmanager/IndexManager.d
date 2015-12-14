@@ -11,8 +11,11 @@ indexmanager/IndexManager.d: ../indexmanager/IndexManager.cpp \
  ../indexmanager/../bufmanager/../fileio/FileManager.h \
  ../indexmanager/../bufmanager/../fileio/../utils/pagedef.h \
  ../indexmanager/../bufmanager/../fileio/../utils/MyBitMap.h \
- ../indexmanager/../Tool/RecordTool.h \
- ../indexmanager/../Tool/../utils/pagedef.h
+ ../indexmanager/../datamanager/DataManager.h \
+ ../indexmanager/../datamanager/../bufmanager/BufPageManager.h \
+ ../indexmanager/../datamanager/../Tool/RecordTool.h \
+ ../indexmanager/../datamanager/../Tool/../utils/pagedef.h \
+ ../indexmanager/../Tool/RecordTool.h
 
 ../indexmanager/IndexManager.h:
 
@@ -38,6 +41,12 @@ indexmanager/IndexManager.d: ../indexmanager/IndexManager.cpp \
 
 ../indexmanager/../bufmanager/../fileio/../utils/MyBitMap.h:
 
-../indexmanager/../Tool/RecordTool.h:
+../indexmanager/../datamanager/DataManager.h:
 
-../indexmanager/../Tool/../utils/pagedef.h:
+../indexmanager/../datamanager/../bufmanager/BufPageManager.h:
+
+../indexmanager/../datamanager/../Tool/RecordTool.h:
+
+../indexmanager/../datamanager/../Tool/../utils/pagedef.h:
+
+../indexmanager/../Tool/RecordTool.h:
