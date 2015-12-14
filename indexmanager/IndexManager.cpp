@@ -34,6 +34,7 @@ IndexManager::~IndexManager() {
 
 //创建索引
 //返回1为创建成功，0为索引已存在，-1为尚未选中任何database， -2 database不存在
+//-4该表的该字段上已经建过索引
 int IndexManager::createIndex( IndexInfo indexInfo) {
 	if (currentDB == "") {
 		return -1;
@@ -51,6 +52,13 @@ int IndexManager::createIndex( IndexInfo indexInfo) {
 	if (!success) {
 		return -3;
 	}
+
+	if (indexMap.find(indexInfo.tableName+"_"+indexInfo.fieldName) != indexMap.end()) {
+		return -4;
+	}
+
+
+
 	int fileID;
 	ifm->openFile(filePath.c_str(), fileID);
 	int index;
@@ -104,6 +112,7 @@ int IndexManager::createIndex( IndexInfo indexInfo) {
 	ibm->writeBack(index);
 
 	ifm->closeFile(fileID);
+	addIndexInfo(indexInfo);
 
 	reBuildData(indexInfo);
 
@@ -128,6 +137,13 @@ int IndexManager::dropIndex(string tableName, string indexName) {
 		return 0;
 	}
 	if (remove(filePath.c_str()) == 0) {
+			for (map<string, IndexInfo>::iterator it = indexMap.begin(); it != indexMap.end(); ++it) {
+				if (it->second.tableName == tableName && it->second.indexName == indexName) {
+					indexMap.erase(it);
+					reWriteIndexSys();
+					break;
+				}
+			}
 			return 1;
 	} else {
 			return -3;
@@ -138,13 +154,84 @@ int IndexManager::dropIndex(string tableName, string indexName) {
 /*-----------------------------------------------------------------------------------------------------*/
 //供查询解析模块调用的功能函数
 
+//获取某个表某个字段的indexinfo, flag为false表示索引不存在
+IndexInfo IndexManager::getIndexInfo(string tableName, string fieldName, bool& flag) {
+	if (indexMap.find(tableName+"_"+fieldName) != indexMap.end()) {
+		flag = true;
+		return indexMap[tableName+"_"+fieldName];
+	}
+
+	flag = false;
+	IndexInfo info;
+	info.legal = false;
+	return info;
+
+}
+
 void  IndexManager::setDataBase(string dbName) {
 	currentDB = dbName;
 	currentIndexInfo.legal = false;
+	loadIndexMap();
 }
 
-int IndexManager::insertRecord(ConDP key, Data record) {
 
+void IndexManager::setIndex(string tableName, string indexName) {
+	currentTable = tableName;
+	currentIndex = indexName;
+}
+
+//查找key值满足特定条件的记录的位置
+vector<LP> IndexManager::searchKey(ConDP key) {
+	vector<LP> ans;
+	int v = search(key);
+	if (v == -1) {
+		return ans;
+	}
+
+	openIndex(currentTable, currentIndex);
+	IndexInfo indexinfo = getCurrentIndexInfo();
+	int pageOff = 0;
+	int type = 0;
+	nodeSearch(key, v, type, pageOff);
+
+	int index = 0;
+	Byte* page = (Byte*)(ibm->getPage(currentFileID, v, index)); //页级索引页
+	int spaceLeft = RecordTool::byte2Int(page, 2);
+	int lineNum = RecordTool::byte2Int(page+5, 2);
+	int pageEnd = PAGE_SIZE - spaceLeft;
+
+
+	bool flag = false;
+
+	while (pageOff < pageEnd) {
+		int lineLen = RecordTool::byte2Int(page+pageOff+1, 2);
+		Byte line[lineLen];
+		RecordTool::copyByte(line, page+pageOff, lineLen);
+		LP keypos;
+		ConDP linekey = getKeyByLine(line, indexinfo, keypos);
+		if (ConDPEqual(key, linekey)) {
+			ans.push_back(keypos);
+		}
+		pageOff += lineLen;
+	}
+	return ans;
+}
+
+//使用DataManager插入，然后把数据文件中插入的Pos返回
+int IndexManager::insertRecord(ConDP key, LP pos) {
+	return insert(key, pos);
+}
+
+//使用DataManager删除，然后把老的和新的LP传入
+int IndexManager::upDateRecord(ConDP key, LP oldPos, LP newPos) {
+	removeLine(key, oldPos);
+	return insert(key, newPos);
+}
+
+//使用DataManager删除，并把key和原来的LP传入这边来删除索引
+int IndexManager::deleteRecord(ConDP key, LP pos) {
+	removeLine(key, pos);
+	return 1;
 }
 
 /*-----------------------------------------------------------------------------------------------------*/
@@ -194,6 +281,8 @@ int  IndexManager::openIndex(string tableName, string indexName) {
 		string filepath = "";
 		filepath = "DataBase/" + currentDB + "/" + indexName + "_" + tableName + ".index";
 		ifm->openFile(filepath.c_str(), currentFileID);
+		currentTable = tableName;
+		currentIndex = indexName;
 		return 1;
 	}
 	assert(currentFileID >= 0);
@@ -213,6 +302,82 @@ int  IndexManager::closeIndex( string tableName, string indexName) {
 	currentTable = "";
 	currentIndex = "";
 	return 1;
+}
+
+//加载已有索引信息
+int IndexManager::loadIndexMap() {
+	indexMap.clear();
+	string filePath = "DataBase/" + currentDB + "/Index.sys";
+	if (is_file_exist(filePath.c_str()) != 0) {
+		bool success = ifm->createFile(filePath.c_str());
+		if (!success) {
+			return -1;
+		}
+	}
+
+	ifstream fin(filePath.c_str());
+
+	string indexName = "", tableName = "", fieldName = "";
+	int fieldType = 0, ifFixed = 0, ifNull = 0, indexType = 0, fieldLen = 0;
+	while (fin>>indexName>>tableName>>fieldName>>fieldType>>ifFixed>>ifNull>>indexType>>fieldLen) {
+		IndexInfo info;
+		info.indexName = indexName;
+		info.tableName = tableName;
+		info.fieldName = fieldName;
+		info.fieldType = fieldType;
+		info.ifFixed = ifFixed;
+		info.ifNull = ifNull;
+		info.indexType = indexType;
+		info.fieldLen = fieldLen;
+		info.legal = true;
+		string key = tableName+"_"+fieldName;
+		indexMap.insert(pair<string, IndexInfo>(key, info));
+	}
+	fin.clear();
+	fin.close();
+
+	return 1;
+
+}
+
+//把当前加载的indexmap重新写入文件
+int IndexManager::reWriteIndexSys() {
+	string filePath = "DataBase/" + currentDB + "/Index.sys";
+	ofstream fout(filePath.c_str());
+	for (map<string,IndexInfo>::iterator it = indexMap.begin(); it != indexMap.end(); ++it) {
+		IndexInfo indexinfo = it->second;
+		fout << indexinfo.indexName << " " << indexinfo.tableName << " " << indexinfo.fieldName << " " << indexinfo.fieldType
+				<< " " << indexinfo.ifFixed << " " << indexinfo.ifNull << " " << indexinfo.indexType << " " << indexinfo.fieldLen << endl;
+	}
+
+	fout.clear();
+	fout.close();
+
+	return 1;
+
+}
+
+//向索引文件表中加入追加写入索引信息
+int IndexManager::addIndexInfo(IndexInfo indexinfo) {
+	string filePath = "DataBase/" + currentDB + "/Index.sys";
+	if (is_file_exist(filePath.c_str()) != 0) {
+		bool success = ifm->createFile(filePath.c_str());
+		if (!success) {
+			return -1;
+		}
+	}
+	ofstream fout(filePath.c_str(), ios::app);
+
+	fout << indexinfo.indexName << " " << indexinfo.tableName << " " << indexinfo.fieldName << " " << indexinfo.fieldType
+			<< " " << indexinfo.ifFixed << " " << indexinfo.ifNull << " " << indexinfo.indexType << " " << indexinfo.fieldLen << endl;
+
+	loadIndexMap();
+
+	fout.clear();
+	fout.close();
+
+	return 1;
+
 }
 
 /*----------------------------------------------B+Tree part-----------------------------------*/
@@ -302,7 +467,7 @@ void IndexManager::solveOverflow(int v) {
 		RecordTool::int2Byte(pagev+5, 2, lineNum);
 		//修改根节点的信息
 		//仅保留第一个指针, 指向pagev
-		int len = RecordTool::byte2Int(page1+96+1, 2);
+		len = RecordTool::byte2Int(page1+96+1, 2);
 		RecordTool::int2Byte(page1+96+3, 2, v);
 		RecordTool::int2Byte(page1, 2, PAGE_SIZE-96-len);
 		RecordTool::int2Byte(page1+96+5, 2, 1);
@@ -744,6 +909,7 @@ bool IndexManager::ConDPEqual(ConDP key1, ConDP key2) {
 
 	return ans;
 }
+
 
 IndexInfo IndexManager::getCurrentIndexInfo() {
 

@@ -60,6 +60,7 @@ public:
 	//获取属性值满足特定条件的记录
 	 //对某一字段cmpType 0：值等于condi的记录，1：值大于condi的记录，2：值小于condi的记录，3：值为null的记录
 	vector<LP> searchRecord(const char*tablename, ConDP condi, int cmpType);
+
 	vector<LP> searchRecordInPage(const char* tablename, const int pageindex, ConDP condi, int cmpType); //在某个页内检索
 
 	//工具函数

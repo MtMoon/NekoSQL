@@ -11,6 +11,10 @@
 #include "../bufmanager/BufPageManager.h"
 #include "../datamanager/DataManager.h"
 #include "../Tool/RecordTool.h"
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+#include <map>
 
 struct indexinfo {
 	string indexName;
@@ -22,7 +26,6 @@ struct indexinfo {
 	int indexType; //0 非簇集不唯一，1 非簇集唯一，2 簇集(默认唯一)
 	int fieldLen; //若是定长，则存储定长码值长度
 	bool legal; //是否合法
-
 };
 
 typedef struct indexinfo IndexInfo;
@@ -36,9 +39,7 @@ public:
 	~IndexManager();
 
 	//用户可以调用的索引定义操作函数
-
 	//创建索引
-
 	int createIndex(IndexInfo indexInfo);
 
 	//删除索引
@@ -46,7 +47,16 @@ public:
 
 	//查询解析模块调用的索引功能函数
 	void setDataBase(string dbName);
-	int insertRecord(ConDP key, Data record);
+	void setIndex(string tableName, string indexName);
+
+	vector<LP> searchKey(ConDP key); //查找key值满足特定条件的记录的位置
+	int insertRecord(ConDP key, LP pos);
+	int deleteRecord(ConDP key, LP pos);
+	int upDateRecord(ConDP key, LP oldPos, LP newPos);
+
+
+	 //获取某个表某个字段的indexinfo, flag为false表示索引不存在
+	IndexInfo getIndexInfo(string tableName, string fieldName, bool& flag);
 
 private:
 
@@ -62,15 +72,13 @@ private:
 	string currentIndex;
 	IndexInfo currentIndexInfo;
 
+	map<string, IndexInfo> indexMap; //索引已有的索引信息
+
 	int currentFileID;
 
 	//用于索引操作的函数
 	//为以有的数据文件建立索引
 	int reBuildData(IndexInfo indexinfo);
-
-	//打开和关闭索引
-	int openIndex(string tableName, string indexName);
-	int closeIndex(string tableName, string indexName);
 
 	//工具函数
 	int is_dir_exist(const char* dirpath);
@@ -78,6 +86,11 @@ private:
 	int getFilePageNum(const char* filepath); //获取文件页数
 	IndexInfo getCurrentIndexInfo();
 	bool ConDPEqual(ConDP key1, ConDP key2); //判断两个key是否相等
+	int loadIndexMap(); //加载已有索引信息
+	int addIndexInfo(IndexInfo indexinfo); //向索引文件表中加入追加写入索引信息
+	int reWriteIndexSys(); //把当前加载的indexmap重新写入文件
+	int openIndex(string tableName, string indexName);
+	int closeIndex(string tableName, string indexName);
 
 	/*----------------------------------------------B+Tree part-----------------------------------*/
 	//B+Tree相关成员变量
