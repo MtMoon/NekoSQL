@@ -24,6 +24,10 @@ Byte* RecordTool::makeRecord(TableInfo tb, int& len, DP data[], int size) {
 	len += 2*tb.VN;
 
 	for (int i=0; i<tb.FN; i++) {
+		if (tb.types[i] == 0) {
+			len += 4;
+			continue;
+		}
 		len += tb.Flen[i];
 	}
 
@@ -180,7 +184,7 @@ bool RecordTool::hasSameSegVal(TableInfo& tb, Data record, ConDP condi, int cmpT
 
 	//整数
 	if (condi.type == 0) {
-		printf("age %d \n", fieldValue.value_int);
+		//printf("age %d \n", fieldValue.value_int);
 		if (cmpType == 0 && condi.value_int == fieldValue.value_int) {
 			ans = true;
 		} else if (cmpType == 1 &&  fieldValue.value_int  > condi.value_int) {

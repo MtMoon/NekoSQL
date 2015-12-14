@@ -77,7 +77,7 @@ public:
 	vector<KP> getAllKPInTable(const char* tablename, string fieldName); //获取一个表里的所有key pair，用于索引模块
 
 
-private:
+//private:
 	BufPageManager* bm;
 	FileManager* fm;
 	string currentBase; //当前使用的数据库，即目录名
