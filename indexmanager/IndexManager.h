@@ -106,8 +106,9 @@ private:
 	void fillRoot(ConDP key); //插入时根节点为空，填充根节点
 
 	//B+Tree相关的工具函数
-	int nodeSearch(ConDP key, int v, int& type, int& off);
-	void makeIndexLine(IndexInfo& indexinfo, ConDP key, int type, int pid, LP pos, int lineLen, Byte* line);
+	int nodeSearch(ConDP key, int v, int& type);
+	int leafNodeSearch(ConDP key, int v, int searchtype); //定位叶节点中满足key的某条索引行的页偏移
+	void makeIndexLine(IndexInfo& indexinfo, ConDP key, int type, int nexttype, int pid, LP pos, int lineLen, Byte* line);
 	int calcuIndexLineLen(IndexInfo& indexinfo, ConDP key, int type); //计算索行的长度
 	int newIndexPage(int type, int parent); //新开一个索引页，返回页号
 	ConDP getKeyByLine(Byte* line, IndexInfo& indexinfo, LP& pos); //获取key值

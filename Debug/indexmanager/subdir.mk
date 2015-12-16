@@ -4,15 +4,12 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-../indexmanager/BPlusTree.cpp \
 ../indexmanager/IndexManager.cpp 
 
 OBJS += \
-./indexmanager/BPlusTree.o \
 ./indexmanager/IndexManager.o 
 
 CPP_DEPS += \
-./indexmanager/BPlusTree.d \
 ./indexmanager/IndexManager.d 
 
 

@@ -13,7 +13,7 @@
 #include <cstring>
 using namespace std;
 
-int main() {
+/*int main() {
 
 	DataManager* dm = new DataManager();
 	dm->setDatabase("test1");
@@ -77,5 +77,5 @@ int main() {
 
 
 	return 0;
-}
+}*/
 

@@ -75,6 +75,7 @@ public:
 	void invalidTbMap(string tbName); //无效化tables中存的表信息
 	vector<LP> getAllLPInTable(const char* tablename); //获取一个表里所有有效数据的LP
 	vector<KP> getAllKPInTable(const char* tablename, string fieldName); //获取一个表里的所有key pair，用于索引模块
+	Data getRecordByLP(const char* tablename, LP pos); //根据位置和表名获取一条数据
 
 
 //private:
@@ -97,7 +98,6 @@ public:
 
 	int getPageLeftSize(int pageindex); //获取某个page剩余byte数
 	int getPageNum(const char* tablename); //加载表当前的页数
-	Data getRecordByLP(const char* tablename, LP pos); //根据位置和表名获取一条数据
 
 
 	bool newEmptySpecialPage(const char* tablename);	

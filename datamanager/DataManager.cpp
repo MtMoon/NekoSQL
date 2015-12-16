@@ -444,8 +444,8 @@ Data DataManager::getRecordByLP(const char* tablename, LP pos) {
 	int start = 0;
 	Byte* temp = page+PAGE_SIZE-2*(pos.second+1);
 	start = RecordTool::byte2Int(temp, 2);
-	cout << "location: " << pos.first << " " << pos.second << endl;
-	cout << "start: " << start << endl;
+	//cout << "location: " << pos.first << " " << pos.second << endl;
+	//cout << "start: " << start << endl;
 	if (start == -1) {
 		return Data(NULL,0);
 	}
@@ -453,7 +453,7 @@ Data DataManager::getRecordByLP(const char* tablename, LP pos) {
 	int len = 0;
 	temp = page+start+1;
 	len = RecordTool::byte2Int(temp, 2);
-	cout << "len: " << len << endl;
+	//cout << "len: " << len << endl;
 	Byte* record = new Byte[len];
 	temp = page+start;
 	for (int i=0; i<len; i++) {
@@ -828,30 +828,30 @@ int DataManager::newNormalPage(const char* tablename, int fileID)
 void DataManager::pageInfo(const char* tablename, int pageID)
 {
 	string filepath(tablename);
-	filepath = "DataBase/" + currentBase + "/" + filepath + ".data";
+	filepath = "DataBase/" + currentBase + "/" + filepath;
 	int fileID;
 	fm->openFile(filepath.c_str(), fileID);
 	if (pageID < 1 || pageID >= getPageNum(tablename))
 		cout << "invalid pageID" << endl;
 	else
 	{
+		TableInfo tableInfo = getTableInfo(tablename);
 		int pageindex;
 		Byte* buf = (Byte*)(bm->getPage(fileID, pageID, pageindex));
 		int spaceLeft = RecordTool::byte2Int(buf, 2);
 		int slotNum = RecordTool::byte2Int(buf+2, 2);
+		cout << "Table " << string(tablename) << " Info:" << endl;
 		cout << "space left:" << spaceLeft << endl;
 		cout << "slot num:" << slotNum << endl;
-		cout << "slot:" << endl;
+		cout << "Following is data:" << endl;
 		for (int i = 0; i < slotNum; i++)
 		{
 			int offset = PAGE_SIZE-(i+1)*2;
 			int start = RecordTool::byte2Int(buf+offset, 2);
-			cout << start << ':';
 			if (start != -1)
 			{
-				int len = RecordTool::getRecordLen(buf+start);
-				for (int i = 3; i < len; i++)
-					cout << *(buf+start+i);
+				Data data = getRecordByLP(tablename, LP(pageID, i));
+				RecordTool::printRecord(tableInfo, data);
 			}
 			cout << endl;
 		}

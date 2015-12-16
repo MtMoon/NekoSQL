@@ -84,7 +84,7 @@ public:
 	static bool isVCol(TableInfo& tb, string& colname); //判断一个列是否是变长列
 
 	static Data int2Data(int c); //int转换为data
-	static Data str2Data(char* str, int size); //字符数组转化为Data
+	static Data str2Data(const char* str, int size); //字符数组转化为Data
 	static int byte2Int(Byte* byte, int size); //将从byte首地址开始的sizg个byte转为int size不能大于4
 	static void byte2Str(char* str, Byte* byte, int size); //把size个byte转为str, 要求str指向的数组大小不小于size
 

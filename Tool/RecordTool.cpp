@@ -301,7 +301,10 @@ ConDP RecordTool::getFieldValueInRecord(TableInfo& tb, Data record, string field
 	if (fieldType == 0) {
 		ans.value_int = byte2Int(data,4);
 	} else if (fieldType != -1) {
-		ans.value_str = string(data2Str(Data(data, len)));
+		char str[len+1];
+		byte2Str(str, data, len);
+		str[len] = '\0';
+		ans.value_str = string(str);
 	}
 	return ans;
 }
@@ -321,7 +324,7 @@ int RecordTool::getNVLen(TableInfo& tb) {
 }
 
 //字符数组转化为Data
-Data RecordTool::str2Data(char* str, int size) {
+Data RecordTool::str2Data(const char* str, int size) {
 	Data d;
 	d.second = size;
 	Byte* byte = new Byte[size];
@@ -377,9 +380,10 @@ int RecordTool::byte2Int(Byte* byte, int size) {
 
 //把size个byte转为str, 要求str指向的数组大小不小于size
 void RecordTool::byte2Str(char* str, Byte* byte, int size) {
+	//printf("RecordTool::byte2Strn size: %d \n", size);
 	char* temp = (char*)byte;
 	for (int i=0; i<size; i++) {
-		str[i] = temp[i];
+		str[i] = *temp++;
 	}
 }
 
@@ -418,8 +422,9 @@ void RecordTool::int2Byte(Byte* byte, int size, int num)
 
 void RecordTool::str2Byte(Byte* byte, int size, const char* str) {
 	int slen = strlen(str);
+	Byte* temp = (Byte*) str;
 	for (int i=0; i<slen; i++) {
-			byte[i] = str[i];
+			byte[i] = temp[i];
 	}
 	for (int i=slen; i<size; i++) {
 		byte[i] = 0;
