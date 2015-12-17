@@ -40,15 +40,15 @@ int main() {
 	key.isnull = false;
 	key.name = "age2";
 	key.type = 0;
-	key.value_int = 22;
+	key.value_int = 25;
 
-	//im->deleteRecord(key, LP(1,3));
+	//im->deleteRecord(key, LP(1,4));
 
 	if (debugtype == 1) {
 		int cflag = im->createIndex(indexinfo);
 		cout << "create index: " << cflag << endl;
 	} else if (debugtype == 0){
-		im->insertRecord(key, LP(1,5));
+		im->insertRecord(key, LP(1,7));
 	} else if (debugtype == 2) {
 		//cout << im->upDateRecord(key, key2, LP(1,3), LP(1,4)) << endl;;
 
