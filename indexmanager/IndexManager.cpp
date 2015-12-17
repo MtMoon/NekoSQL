@@ -20,7 +20,7 @@ IndexManager::IndexManager(DataManager* datamanager) {
 	currentIndex = "";
 	currentFileID = -1;
 	hot = 0;
-	_order = 60;
+	_order = 4;
 	lower_bound = ceil(double(_order) / 2) -1;
 	upper_bound = _order-1;
 }
@@ -219,8 +219,7 @@ vector<LP> IndexManager::searchKey(ConDP key) {
 	//cout << "in searchKey, orikeytype: " <<key.type << endl;
 	cout << "pageEnd: " << pageEnd << endl;
 	cout << "lineNum: " << lineNum << endl;
-	int count = 0;
-	while (count < lineNum) {
+	while (pageOff < pageEnd) {
 		int lineLen = RecordTool::byte2Int(page+pageOff+1, 2);
 		Byte line[lineLen];
 		RecordTool::copyByte(line, page+pageOff, lineLen);
@@ -238,7 +237,6 @@ vector<LP> IndexManager::searchKey(ConDP key) {
 			ans.push_back(keypos);
 		}
 		pageOff += lineLen;
-		count++;
 		//return ans;
 	}
 	return ans;
@@ -490,6 +488,9 @@ bool IndexManager::insert(ConDP key, LP pos) {
 
 //处理上溢页分裂
 void IndexManager::solveOverflow(int v) {
+	if (v == 0) { //meta页，递归节点
+		return;
+	}
 	openIndex(currentTable, currentIndex);
 	IndexInfo indexinfo = getCurrentIndexInfo();
 	int index1 = -1;
@@ -498,7 +499,10 @@ void IndexManager::solveOverflow(int v) {
 	if (lineNum <= upper_bound) {
 		return;
 	}
+	cout << "__________enter solveOverflow, doing_______________" << endl;
+	cout << "overflow page v: " << v << endl;
 	int parent = RecordTool::byte2Int(page1+7, 4);
+	cout << "parent: " << parent << endl;
 	int spaceLeft = RecordTool::byte2Int(page1, 2);
 	int pageType = RecordTool::byte2Int(page1+4, 1);
 	//如果待分裂的是根页
@@ -524,11 +528,11 @@ void IndexManager::solveOverflow(int v) {
 
 	//分裂
 	int u = newIndexPage(pageType+1, parent);
+	cout << "new page u: " << u << endl;
 	int index2 = -1;
 	Byte* page2 = (Byte*)(ibm->getPage(currentFileID, u, index2));
 
 	int r = _order / 2; //轴点
-	int pageOff = 96;
 
 	//查找轴点的起始页偏移
 	int start = 96;
@@ -537,7 +541,9 @@ void IndexManager::solveOverflow(int v) {
 	for (int i=0; i<r; i++) {
 		int lineLen = RecordTool::byte2Int(line+1, 2);
 		start += lineLen;
+		line += lineLen;
 	}
+
 
 	//暂存轴点索引行
 	int rLen = RecordTool::byte2Int(page1+start+1, 2);
@@ -547,9 +553,11 @@ void IndexManager::solveOverflow(int v) {
 	//移动剩余节点行到新页
 	int end = PAGE_SIZE - spaceLeft;
 	int len = end-start;
+	int pageOff = 96;
+	cout << "r start: " << start << " rend: " << end << endl;
 	RecordTool::copyByte(page2+pageOff, page1+start, len);
 	//修改新页剩余空间和索引行数量
-	RecordTool::int2Byte(page2, 2, PAGE_SIZE-len);
+	RecordTool::int2Byte(page2, 2, PAGE_SIZE-96-len);
 	RecordTool::int2Byte(page2+5, 2, lineNum-r);
 	//修改旧页剩余空间和索引行数量
 	RecordTool::int2Byte(page1, 2, spaceLeft+len);
@@ -571,9 +579,13 @@ void IndexManager::solveOverflow(int v) {
 		pageOff += lineLen;
 	}
 	//修改轴点索引行的指针
+
 	RecordTool::int2Byte(rLine+3, 4, u);
 	LP temppos;
 	ConDP rkey = getKeyByLine(rLine, indexinfo, temppos);
+	//修改轴点索引行的下页类型
+	rLine[0] |= (1<<1);
+
 	//轴点关键码上升
 	int roff = 96;
 	roff = leafNodeSearch(rkey, parent, 1);
@@ -596,6 +608,9 @@ void IndexManager::solveOverflow(int v) {
 	ibm->writeBack(index2);
 	ibm->markDirty(parentindex);
 	ibm->writeBack(parentindex);
+
+	//return;
+
 	solveOverflow(parent);
 
 }
@@ -655,7 +670,7 @@ bool  IndexManager::removeLine(ConDP key, LP pos) {
 	}
 	int len = dend-dstart;
 	//修改剩余空间及索引行数量
-	RecordTool::int2Byte(page, 2, spaceLeft-len);
+	RecordTool::int2Byte(page, 2, spaceLeft+len);
 	RecordTool::int2Byte(page+5, 2, lineNum-1);
 
 	//写入被修改的页

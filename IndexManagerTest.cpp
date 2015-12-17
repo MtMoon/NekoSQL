@@ -34,29 +34,24 @@ int main() {
 
 	im->setIndex(indexinfo.tableName, indexinfo.indexName);
 
-	//int cflag = im->createIndex(indexinfo);
-	//cout << "create index: " << cflag << endl;
-
-
+	int debugtype = 2;
 
 	ConDP key;
 	key.isnull = false;
 	key.name = "name2";
 	key.type = 1;
-	key.value_str = "alitaobao";
+	key.value_str = "niuniu";
 
-	ConDP key2;
-	key2.isnull = false;
-	key2.name = "name2";
-	key2.type = 1;
-	key2.value_str = "alitianmao";
-
-	//im->deleteRecord(key, LP(1,0));
-	//im->insertRecord(key, LP(1,3));
-
+	if (debugtype == 1) {
+		int cflag = im->createIndex(indexinfo);
+		cout << "create index: " << cflag << endl;
+	} else if (debugtype == 0){
+		//im->deleteRecord(key, LP(1,0));
+		im->insertRecord(key, LP(1,4));
+	}
 	//cout << im->upDateRecord(key, key2, LP(1,3), LP(1,4)) << endl;;
 
-	vector<LP> indexAns = im->searchKey(key2);
+	vector<LP> indexAns = im->searchKey(key);
 	cout << "index search ans: " << indexAns.size() << endl;
 	for (int i=0; i<indexAns.size(); i++) {
 		cout << indexAns[i].first << " " << indexAns[i].second << endl;
@@ -89,7 +84,7 @@ int main() {
 
 	DP nameDp;
 	nameDp.first = "name2";
-	Data namedata = RecordTool::str2Data("libr",4);
+	Data namedata = RecordTool::str2Data("niuniu",6);
 	nameDp.second = namedata;
 
 	DP array[3];
@@ -97,11 +92,11 @@ int main() {
 	array[0] = ageDp;
 	array[1] = phoneDp;*/
 
-	//dm->deleteRecord("user2", LP(1,2));
+	//dm->deleteRecord("user2", LP(1,3));
 
-	/*LP rpos;
-	dm->insertRecord("user2", array, 3, rpos);
-	cout << rpos.first << rpos.second << endl;*/
+	//LP rpos;
+	//dm->insertRecord("user2", array, 3, rpos);
+	//cout << rpos.first << rpos.second << endl;
 
 
 	/*vector<LP> location = dm->getAllLPInTable("user2");
