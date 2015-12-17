@@ -107,7 +107,7 @@ private:
 
 	//B+Tree相关的工具函数
 	int nodeSearch(ConDP key, int v, int& type);
-	int leafNodeSearch(ConDP key, int v, int searchtype); //定位叶节点中满足key的某条索引行的页偏移
+	int leafNodeSearch(ConDP key, int v, int searchtype, int nodetype); //定位叶节点中满足key的某条索引行的页偏移
 	void makeIndexLine(IndexInfo& indexinfo, ConDP key, int type, int nexttype, int pid, LP pos, int lineLen, Byte* line);
 	int calcuIndexLineLen(IndexInfo& indexinfo, ConDP key, int type); //计算索行的长度
 	int newIndexPage(int type, int parent); //新开一个索引页，返回页号

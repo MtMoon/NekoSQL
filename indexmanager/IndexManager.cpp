@@ -200,7 +200,7 @@ vector<LP> IndexManager::searchKey(ConDP key) {
 	cout << "in searchKey, get leaf node id: " << v << endl;
 	IndexInfo indexinfo = getCurrentIndexInfo();
 	int pageOff = 0;
-	pageOff = leafNodeSearch(key, v, 0);
+	pageOff = leafNodeSearch(key, v, 0, 1);
 	cout << "in searhKey, pageOff is: " << pageOff << endl;
 	if (pageOff == -1) {
 		return ans;
@@ -451,7 +451,7 @@ bool IndexManager::insert(ConDP key, LP pos) {
 	cout  << "insert, search ans2, v: " << v << endl;
 	//查找页级索引页
 	int pageoff = 96;
-	pageoff = leafNodeSearch(key, v, 1);
+	pageoff = leafNodeSearch(key, v, 1, 1);
 	cout << "insert pageoff: " << pageoff << endl;
 	int pageindex = 0;
 	ibm->getPage(currentFileID, v, pageindex);
@@ -536,6 +536,7 @@ void IndexManager::solveOverflow(int v) {
 		page1 = pagev;
 		index1 = indexv;
 		pageType = 0;
+
 		//return;
 	}
 
@@ -593,6 +594,26 @@ void IndexManager::solveOverflow(int v) {
 		ibm->writeBack(tempIndex);
 		pageOff += lineLen;
 	}
+
+	if (rootOverFlag) { //如果分裂的是根页，则还需修改根页左孩子的孩子的父指针
+		pageOff = 96;
+		line = NULL;
+		for (int i=0; i<r; i++) {
+			line = page1+pageOff;
+			int lineLen = RecordTool::byte2Int(line+1, 2);
+			int ptr = RecordTool::byte2Int(line+3, 4);
+			int tempIndex = -1;
+			Byte* temppage = (Byte*)(ibm->getPage(currentFileID, ptr, tempIndex));
+			RecordTool::int2Byte(temppage+7, 4, v);
+			ibm->markDirty(tempIndex);
+			ibm->writeBack(tempIndex);
+			pageOff += lineLen;
+		}
+
+	}
+
+
+
 	//修改轴点索引行的指针
 	RecordTool::int2Byte(rLine+3, 4, u);
 	LP temppos;
@@ -607,7 +628,7 @@ void IndexManager::solveOverflow(int v) {
 
 	//轴点关键码上升
 	int roff = 96;
-	roff = leafNodeSearch(rkey, parent, 1);
+	roff = leafNodeSearch(rkey, parent, 1, 0); //parent肯定是非叶节点
 	cout << "roff: " << roff << endl;
 	int parentindex = 0;
 	Byte* parentpage = (Byte*)(ibm->getPage(currentFileID, parent, parentindex));
@@ -643,7 +664,7 @@ bool  IndexManager::removeLine(ConDP key, LP pos) {
 	cout << "removeline, leaf node v: " << v << endl;
 	IndexInfo indexinfo = getCurrentIndexInfo();
 	int pageOff = 0;
-	pageOff = leafNodeSearch(key, v, 0);
+	pageOff = leafNodeSearch(key, v, 0, 1);
 	if (pageOff == -1) {
 		return false;
 	}
@@ -853,9 +874,10 @@ ConDP  IndexManager::getKeyByLine(Byte* line, IndexInfo& indexinfo, LP& pos) {
 		end = RecordTool::byte2Int(line+tempoff, 2);
 		tempoff += 2;
 		start = tempoff;
-		pos.first = RecordTool::byte2Int(line+end, 2);
-		pos.second = RecordTool::byte2Int(line+end+2, 2);
 	}
+
+	pos.first = RecordTool::byte2Int(line+end, 2);
+	pos.second = RecordTool::byte2Int(line+end+2, 2);
 
 	//cout << "in getKeyByLine index filedType:" << indexinfo.fieldType << endl;
 	//cout << "in getKeyByLine start: " << start << " " << " end: " << end << endl;
@@ -876,7 +898,8 @@ ConDP  IndexManager::getKeyByLine(Byte* line, IndexInfo& indexinfo, LP& pos) {
 //定位叶节点中满足key的某条索引行的页偏移
 //searchtype == 0，判等查找，1，找到码值大于conkey的索引行的起始
 //判等查找时，若找不到，会返回-1
-int  IndexManager::leafNodeSearch(ConDP conkey, int v, int searchtype) {
+// nodetype 0 中间节点 1叶节点
+int  IndexManager::leafNodeSearch(ConDP conkey, int v, int searchtype, int nodetype) {
 	cout << "enter leafnode search v: " << v << endl;
 	openIndex(currentTable, currentIndex);
 	int pageindex = 0;
@@ -901,6 +924,13 @@ int  IndexManager::leafNodeSearch(ConDP conkey, int v, int searchtype) {
 	int count = 0;
 	Byte* line = NULL;
 	bool flag = false;
+
+	if (nodetype == 0) { //非叶节点则忽略首指针
+		count = 1;
+		off += RecordTool::byte2Int(page+off+1, 2);
+		pageOff = off;
+	}
+
 	while (count < lineNum) {
 		line = page + off;
 		lineLen = RecordTool::byte2Int(line+1, 2);

@@ -20,13 +20,13 @@ int main() {
 	dm->setDatabase("test1");
 	im->setDataBase("test1");
 	bool flag = false;
-	IndexInfo indexinfo = im->getIndexInfo("user2","name2",flag);
+	IndexInfo indexinfo = im->getIndexInfo("user2","age2",flag);
 	cout << "inde exist flag: " << flag << endl;
-	indexinfo.fieldName = "name2";
+	indexinfo.fieldName = "age2";
 	indexinfo.tableName = "user2";
-	indexinfo.fieldType = 1;
-	indexinfo.fieldLen = 0;
-	indexinfo.ifFixed = 0;
+	indexinfo.fieldType = 0;
+	indexinfo.fieldLen = 4;
+	indexinfo.ifFixed = 1;
 	indexinfo.ifNull = 0;
 	indexinfo.indexType = 1;
 	indexinfo.legal = true;
@@ -38,16 +38,17 @@ int main() {
 
 	ConDP key;
 	key.isnull = false;
-	key.name = "name2";
-	key.type = 1;
-	key.value_str = "zzz";
+	key.name = "age2";
+	key.type = 0;
+	key.value_int = 22;
+
+	//im->deleteRecord(key, LP(1,3));
 
 	if (debugtype == 1) {
 		int cflag = im->createIndex(indexinfo);
 		cout << "create index: " << cflag << endl;
 	} else if (debugtype == 0){
-		//im->deleteRecord(key, LP(1,0));
-		im->insertRecord(key, LP(1,4));
+		im->insertRecord(key, LP(1,5));
 	} else if (debugtype == 2) {
 		//cout << im->upDateRecord(key, key2, LP(1,3), LP(1,4)) << endl;;
 
@@ -75,7 +76,7 @@ int main() {
 	//插入数据
 	/*DP ageDp;
 	ageDp.first = "age2";
-	Data agedata = RecordTool::int2Data(23);
+	Data agedata = RecordTool::int2Data(25);
 	ageDp.second = agedata;
 
 	DP phoneDp;
@@ -85,7 +86,7 @@ int main() {
 
 	DP nameDp;
 	nameDp.first = "name2";
-	Data namedata = RecordTool::str2Data("niuniu",6);
+	Data namedata = RecordTool::str2Data("yxy",3);
 	nameDp.second = namedata;
 
 	DP array[3];
@@ -93,11 +94,11 @@ int main() {
 	array[0] = ageDp;
 	array[1] = phoneDp;*/
 
-	//dm->deleteRecord("user2", LP(1,3));
+	//dm->deleteRecord("user2", LP(1,1));
 
-	//LP rpos;
-	//dm->insertRecord("user2", array, 3, rpos);
-	//cout << rpos.first << rpos.second << endl;
+	/*LP rpos;
+	dm->insertRecord("user2", array, 3, rpos);
+	cout << "rpos: " << rpos.first << " " << rpos.second << endl;*/
 
 
 	/*vector<LP> location = dm->getAllLPInTable("user2");
