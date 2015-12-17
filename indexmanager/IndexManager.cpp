@@ -7,6 +7,8 @@
 
 #include "IndexManager.h"
 
+//int yxycount = 0;
+
 IndexManager::IndexManager(DataManager* datamanager) {
 
 	ifm = new FileManager();
@@ -20,7 +22,7 @@ IndexManager::IndexManager(DataManager* datamanager) {
 	currentIndex = "";
 	currentFileID = -1;
 	hot = 0;
-	_order = 4;
+	_order = 3;
 	lower_bound = ceil(double(_order) / 2) -1;
 	upper_bound = _order-1;
 }
@@ -189,9 +191,6 @@ vector<LP> IndexManager::searchKey(ConDP key) {
 	openIndex(currentTable, currentIndex);
 	vector<LP> ans;
 
-	/*leafNodeSearch(key, 3, 1);
-
-	return ans;*/
 
 	int v = search(key);
 	if (v == -1) {
@@ -501,13 +500,18 @@ void IndexManager::solveOverflow(int v) {
 	}
 	cout << "__________enter solveOverflow, doing_______________" << endl;
 	cout << "overflow page v: " << v << endl;
+	cout << "overflow page line num: " << lineNum << endl;
 	int parent = RecordTool::byte2Int(page1+7, 4);
 	cout << "parent: " << parent << endl;
+
 	int spaceLeft = RecordTool::byte2Int(page1, 2);
 	int pageType = RecordTool::byte2Int(page1+4, 1);
 	//如果待分裂的是根页
+	bool rootOverFlag = false;
 	if (parent == 0 && v == 1) {
+		rootOverFlag = true;
 		v  = newIndexPage(1, 1);
+		cout << "new mid page v: " << v << endl;
 		//将根页的内容全部拷贝到v中
 		int indexv = -1;
 		Byte* pagev = (Byte*)(ibm->getPage(currentFileID, v, indexv));
@@ -519,15 +523,24 @@ void IndexManager::solveOverflow(int v) {
 		//修改根节点的信息
 		//仅保留第一个指针, 指向pagev
 		len = RecordTool::byte2Int(page1+96+1, 2);
-		RecordTool::int2Byte(page1+96+3, 2, v);
+		RecordTool::int2Byte(page1+96+3, 4, v);
+		//修改保留的第一个指针指向的下页类型
+		Byte* line = page1+96;
+		line[0] &= ~(1<<1);
+		//修改根页剩余空间
 		RecordTool::int2Byte(page1, 2, PAGE_SIZE-96-len);
-		RecordTool::int2Byte(page1+96+5, 2, 1);
+		RecordTool::int2Byte(page1+5, 2, 1);
+		ibm->markDirty(index1);
+		ibm->writeBack(index1); //写入原根页
 		parent = 1;
 		page1 = pagev;
+		index1 = indexv;
+		pageType = 1;
+		//return;
 	}
 
 	//分裂
-	int u = newIndexPage(pageType+1, parent);
+	int u = newIndexPage(pageType, parent);
 	cout << "new page u: " << u << endl;
 	int index2 = -1;
 	Byte* page2 = (Byte*)(ibm->getPage(currentFileID, u, index2));
@@ -579,16 +592,21 @@ void IndexManager::solveOverflow(int v) {
 		pageOff += lineLen;
 	}
 	//修改轴点索引行的指针
-
 	RecordTool::int2Byte(rLine+3, 4, u);
 	LP temppos;
 	ConDP rkey = getKeyByLine(rLine, indexinfo, temppos);
 	//修改轴点索引行的下页类型
-	rLine[0] |= (1<<1);
+	//获取下页类型
+	if (pageType == 2) {
+		rLine[0] |= (1<<1);
+	} else if (pageType == 1) {
+		rLine[0] &= ~(1<<1);
+	}
 
 	//轴点关键码上升
 	int roff = 96;
 	roff = leafNodeSearch(rkey, parent, 1);
+	cout << "roff: " << roff << endl;
 	int parentindex = 0;
 	Byte* parentpage = (Byte*)(ibm->getPage(currentFileID, parent, parentindex));
 	int parentLeft = RecordTool::byte2Int(parentpage, 2);
@@ -608,8 +626,6 @@ void IndexManager::solveOverflow(int v) {
 	ibm->writeBack(index2);
 	ibm->markDirty(parentindex);
 	ibm->writeBack(parentindex);
-
-	//return;
 
 	solveOverflow(parent);
 
@@ -883,7 +899,7 @@ int  IndexManager::leafNodeSearch(ConDP conkey, int v, int searchtype) {
 	int count = 0;
 	Byte* line = NULL;
 	bool flag = false;
-	while (count < lineNum) { //第一个指针已经单独处理
+	while (count < lineNum) {
 		line = page + off;
 		lineLen = RecordTool::byte2Int(line+1, 2);
 		pageOff = off;
@@ -908,7 +924,7 @@ int  IndexManager::leafNodeSearch(ConDP conkey, int v, int searchtype) {
 		}
 		if (indexinfo.fieldType == 0) { //int
 			int key = RecordTool::byte2Int(line+start, end-start);
-			if ((searchtype == 0 && conkey.value_int == key) || ((searchtype == 1 && conkey.value_int <= key)) ){
+			if ((searchtype == 0 && conkey.value_int == key) || ((searchtype == 1 && conkey.value_int < key)) ){
 				flag = true;
 				break;
 			}
@@ -918,12 +934,13 @@ int  IndexManager::leafNodeSearch(ConDP conkey, int v, int searchtype) {
 			key[end-start] = '\0';
 			cout << "leaf node search, line key: " << key << endl;
 			cout << "leaf node searcg, con key: " << conkey.value_str << endl;
-			if ((searchtype == 0 && conkey.value_str == key) || ((searchtype == 1 && conkey.value_str <= key))) {
+			if ((searchtype == 0 && conkey.value_str == key) || ((searchtype == 1 && conkey.value_str <key))) {
 				flag = true;
 				break;
 			}
 		}
 		off += lineLen;
+		pageOff = off;
 		count++;
 	}
 
@@ -962,8 +979,8 @@ int  IndexManager::nodeSearch(ConDP conkey, int v, int& type) {
 	lastptr = RecordTool::byte2Int(page+off+3, 4);
 	Byte tag = page[off];
 	type = (tag >> 1) & 1;
-	cout << "nodesearch p0, type: " << type << endl;
 	cout << "nodesearch p0, next page id: " << lastptr << endl;
+	cout << "nodesearch p0 next page type: " << type << endl;
 	int lineLen = RecordTool::byte2Int(page+off+1, 2);
 	int count = 1;
 	off += lineLen;
@@ -978,8 +995,8 @@ int  IndexManager::nodeSearch(ConDP conkey, int v, int& type) {
 
 		//取出下页页号
 		int next = RecordTool::byte2Int(line+3, 4);
-		cout << "nodesearch pi, type: " << type << endl;
 		cout << "nodesearch pi, next page id: " << next << endl;
+		cout << "nodesearch pi  next page type: " << type << endl;
 
 		//简化为建索引字段不能为NULL
 		int tempoff = 7;

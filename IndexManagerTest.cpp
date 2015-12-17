@@ -40,21 +40,22 @@ int main() {
 	key.isnull = false;
 	key.name = "name2";
 	key.type = 1;
-	key.value_str = "niuniu";
+	key.value_str = "magic";
 
 	if (debugtype == 1) {
 		int cflag = im->createIndex(indexinfo);
 		cout << "create index: " << cflag << endl;
 	} else if (debugtype == 0){
 		//im->deleteRecord(key, LP(1,0));
-		im->insertRecord(key, LP(1,4));
-	}
-	//cout << im->upDateRecord(key, key2, LP(1,3), LP(1,4)) << endl;;
+		im->insertRecord(key, LP(1,3));
+	} else if (debugtype == 2) {
+		//cout << im->upDateRecord(key, key2, LP(1,3), LP(1,4)) << endl;;
 
-	vector<LP> indexAns = im->searchKey(key);
-	cout << "index search ans: " << indexAns.size() << endl;
-	for (int i=0; i<indexAns.size(); i++) {
-		cout << indexAns[i].first << " " << indexAns[i].second << endl;
+		vector<LP> indexAns = im->searchKey(key);
+		cout << "index search ans: " << indexAns.size() << endl;
+		for (int i=0; i<indexAns.size(); i++) {
+			cout << indexAns[i].first << " " << indexAns[i].second << endl;
+		}
 	}
 
 

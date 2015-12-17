@@ -84,7 +84,7 @@ This is the course project of *Database System* by MtMoon & magicwish
 
 >顺序及具体内容具体如下：
 
-+ 1 Byte: Tag 第0bit，1表示索引码值为定长，0表示索引码值为变长，第1bit，0表示下页为中间页，1表示下页为叶级页
++ 1 Byte: Tag 第0bit，1表示索引码值为定长，0表示索引码值为变长，第1bit，0表示下页为中间页，1表示下页为叶级页，下页类型2，表示该行是叶节点索引行
 + 2 Byte: 该行数据总长度
 + 4 Byte: 下页指针, 存储页号
 + 1 Byte: NULL位图 **如果建索引的字段不允许null，则无此项** 
