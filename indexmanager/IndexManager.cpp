@@ -207,6 +207,8 @@ vector<LP> IndexManager::searchKey(ConDP key) {
 		return ans;
 	}
 
+	//return ans;
+
 	int index = 0;
 	Byte* page = (Byte*)(ibm->getPage(currentFileID, v, index)); //页级索引页
 	int spaceLeft = RecordTool::byte2Int(page, 2);
@@ -215,8 +217,10 @@ vector<LP> IndexManager::searchKey(ConDP key) {
 
 
 	//cout << "in searchKey, orikeytype: " <<key.type << endl;
-
-	while (pageOff < pageEnd) {
+	cout << "pageEnd: " << pageEnd << endl;
+	cout << "lineNum: " << lineNum << endl;
+	int count = 0;
+	while (count < lineNum) {
 		int lineLen = RecordTool::byte2Int(page+pageOff+1, 2);
 		Byte line[lineLen];
 		RecordTool::copyByte(line, page+pageOff, lineLen);
@@ -234,6 +238,8 @@ vector<LP> IndexManager::searchKey(ConDP key) {
 			ans.push_back(keypos);
 		}
 		pageOff += lineLen;
+		count++;
+		//return ans;
 	}
 	return ans;
 }
@@ -244,9 +250,12 @@ int IndexManager::insertRecord(ConDP key, LP pos) {
 }
 
 //使用DataManager删除，然后把老的和新的LP传入
-int IndexManager::upDateRecord(ConDP key, LP oldPos, LP newPos) {
-	removeLine(key, oldPos);
-	return insert(key, newPos);
+bool IndexManager::upDateRecord(ConDP oldKey, ConDP newKey, LP oldPos, LP newPos) {
+	if (removeLine(oldKey, oldPos) ) {
+		return insert(newKey, newPos);
+	} else {
+		return false;
+	}
 }
 
 //使用DataManager删除，并把key和原来的LP传入这边来删除索引
@@ -462,7 +471,8 @@ bool IndexManager::insert(ConDP key, LP pos) {
 	//移动记录行
 	if (lineNum != 0) {
 		int leftStart = PAGE_SIZE - spaceLeft;
-		for (int i=pageoff; i<leftStart; i++) {
+		int tempLen = leftStart - pageoff;
+		for (int i=leftStart-1; i>=pageoff; i--) {
 			page[i+lineLen] = page[i];
 		}
 	}
@@ -591,19 +601,20 @@ void IndexManager::solveOverflow(int v) {
 }
 
 //删除节点码值
-void  IndexManager::removeLine(ConDP key, LP pos) {
+bool  IndexManager::removeLine(ConDP key, LP pos) {
 	openIndex(currentTable, currentIndex);
 	int v = search(key);
 	if (v == -1) {
-		return;
+		return false;
 	}
+	cout << "removeline, leaf node v: " << v << endl;
 	IndexInfo indexinfo = getCurrentIndexInfo();
 	int pageOff = 0;
 	pageOff = leafNodeSearch(key, v, 0);
 	if (pageOff == -1) {
-		return;
+		return false;
 	}
-
+	cout << "removeline, leaf page off: " << pageOff << endl;
 	int index = 0;
 	Byte* page = (Byte*)(ibm->getPage(currentFileID, v, index)); //页级索引页
 	int spaceLeft = RecordTool::byte2Int(page, 2);
@@ -631,11 +642,16 @@ void  IndexManager::removeLine(ConDP key, LP pos) {
 	}
 
 	if (!flag) {
-		return;
+		return false;
 	}
 
+	cout << "removeline, start: " << dstart << " end: " << dend << endl;
+
+
+	int count = 0;
 	for (int i=dstart; i<dend; i++) {
-		page[i] = page[dend+i];
+		page[i] = page[dend+count];
+		count++;
 	}
 	int len = dend-dstart;
 	//修改剩余空间及索引行数量
@@ -645,6 +661,7 @@ void  IndexManager::removeLine(ConDP key, LP pos) {
 	//写入被修改的页
 	ibm->markDirty(index);
 	ibm->writeBack(index);
+	return true;
 
 }
 
@@ -897,6 +914,7 @@ int  IndexManager::leafNodeSearch(ConDP conkey, int v, int searchtype) {
 
 	if (!flag && searchtype == 0) {
 		pageOff = -1;
+		return pageOff;
 	}
 
 	return off;

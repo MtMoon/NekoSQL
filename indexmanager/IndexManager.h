@@ -52,7 +52,7 @@ public:
 	vector<LP> searchKey(ConDP key); //查找key值满足特定条件的记录的位置
 	int insertRecord(ConDP key, LP pos);
 	int deleteRecord(ConDP key, LP pos);
-	int upDateRecord(ConDP key, LP oldPos, LP newPos);
+	bool upDateRecord(ConDP oldKey, ConDP newKey, LP oldPos, LP newPos);
 
 
 	 //获取某个表某个字段的indexinfo, flag为false表示索引不存在
@@ -102,7 +102,7 @@ private:
 	int search(ConDP key); //找到包含key的叶节点页，返回页号
 	bool insert(ConDP key, LP pos);
 	void solveOverflow(int v); //处理上溢页分裂
-	void removeLine(ConDP key, LP pos); //删除节点码值
+	bool removeLine(ConDP key, LP pos); //删除节点码值
 	void fillRoot(ConDP key); //插入时根节点为空，填充根节点
 
 	//B+Tree相关的工具函数

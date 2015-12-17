@@ -37,13 +37,26 @@ int main() {
 	//int cflag = im->createIndex(indexinfo);
 	//cout << "create index: " << cflag << endl;
 
+
+
 	ConDP key;
 	key.isnull = false;
 	key.name = "name2";
 	key.type = 1;
-	key.value_str = "magic";
+	key.value_str = "alitaobao";
 
-	vector<LP> indexAns = im->searchKey(key);
+	ConDP key2;
+	key2.isnull = false;
+	key2.name = "name2";
+	key2.type = 1;
+	key2.value_str = "alitianmao";
+
+	//im->deleteRecord(key, LP(1,0));
+	//im->insertRecord(key, LP(1,3));
+
+	//cout << im->upDateRecord(key, key2, LP(1,3), LP(1,4)) << endl;;
+
+	vector<LP> indexAns = im->searchKey(key2);
 	cout << "index search ans: " << indexAns.size() << endl;
 	for (int i=0; i<indexAns.size(); i++) {
 		cout << indexAns[i].first << " " << indexAns[i].second << endl;
