@@ -535,9 +535,11 @@ void IndexManager::solveOverflow(int v) {
 		parent = 1;
 		page1 = pagev;
 		index1 = indexv;
-		pageType = 1;
+		pageType = 0;
 		//return;
 	}
+
+	cout << "overflow page type: " << pageType << endl;
 
 	//分裂
 	int u = newIndexPage(pageType, parent);
@@ -597,9 +599,9 @@ void IndexManager::solveOverflow(int v) {
 	ConDP rkey = getKeyByLine(rLine, indexinfo, temppos);
 	//修改轴点索引行的下页类型
 	//获取下页类型
-	if (pageType == 2) {
+	if (pageType == 1) {
 		rLine[0] |= (1<<1);
-	} else if (pageType == 1) {
+	} else if (pageType == 0) {
 		rLine[0] &= ~(1<<1);
 	}
 

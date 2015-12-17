@@ -40,7 +40,7 @@ int main() {
 	key.isnull = false;
 	key.name = "name2";
 	key.type = 1;
-	key.value_str = "magic";
+	key.value_str = "zjq";
 
 	if (debugtype == 1) {
 		int cflag = im->createIndex(indexinfo);
