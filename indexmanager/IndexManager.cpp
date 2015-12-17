@@ -510,7 +510,7 @@ void IndexManager::solveOverflow(int v) {
 	bool rootOverFlag = false;
 	if (parent == 0 && v == 1) {
 		rootOverFlag = true;
-		v  = newIndexPage(1, 1);
+		v  = newIndexPage(0, 1);
 		cout << "new mid page v: " << v << endl;
 		//将根页的内容全部拷贝到v中
 		int indexv = -1;
@@ -709,8 +709,8 @@ void IndexManager::fillRoot(ConDP key) {
 
 	//非簇集索引
 
-	pid1 = newIndexPage(2, 1);
-	pid2 = newIndexPage(2, 1);
+	pid1 = newIndexPage(1, 1);
+	pid2 = newIndexPage(1, 1);
 
 	//cout << "pid1: " << pid1 << " pid2: " << pid2 << endl;
 
@@ -1055,7 +1055,7 @@ int  IndexManager::newIndexPage(int type, int parent) {
 	ibm->allocPage(currentFileID, pid, index, false);
 	Byte* page = (Byte*)(ibm->getPage(currentFileID, pid, index));
 
-	//填充页头，0索引根页，1 索引中间页，2 索引叶级页(非簇集)
+	//填充页头，0非页级索引，1  索引叶级页(非簇集)
 	//parent 父节点页号，如果本身为根页，则paren为0，因为根页id为1，第0页是meta页
 	RecordTool::int2Byte(page,2, PAGE_SIZE-96);
 	if (type == 0) {
@@ -1063,11 +1063,9 @@ int  IndexManager::newIndexPage(int type, int parent) {
 	} else {
 		RecordTool::int2Byte(page+2, 1, 1);
 	}
-	if (type == 2) {
-		RecordTool::int2Byte(page+4, 1, 1);
-	} else {
-		RecordTool::int2Byte(page+4, 1, 0);
-	}
+
+	RecordTool::int2Byte(page+4, 1, type);
+
 	RecordTool::int2Byte(page+5, 2, 0);
 	RecordTool::int2Byte(page+7, 4, parent);
 

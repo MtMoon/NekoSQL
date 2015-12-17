@@ -40,14 +40,14 @@ int main() {
 	key.isnull = false;
 	key.name = "name2";
 	key.type = 1;
-	key.value_str = "zjq";
+	key.value_str = "zzz";
 
 	if (debugtype == 1) {
 		int cflag = im->createIndex(indexinfo);
 		cout << "create index: " << cflag << endl;
 	} else if (debugtype == 0){
 		//im->deleteRecord(key, LP(1,0));
-		im->insertRecord(key, LP(1,3));
+		im->insertRecord(key, LP(1,4));
 	} else if (debugtype == 2) {
 		//cout << im->upDateRecord(key, key2, LP(1,3), LP(1,4)) << endl;;
 
