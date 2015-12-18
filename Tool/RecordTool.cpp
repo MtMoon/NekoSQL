@@ -307,12 +307,12 @@ ConDP RecordTool::getFieldValueInRecord(TableInfo& tb, Data record, string field
 
 	//获取数据
 	line = record.first;
-	printRecord(tb, record);
+	//printRecord(tb, record);
 	int len = end - start;
-	printf("start: %d, end: %d fieldType: %d \n", start, end, fieldType);
+	//printf("start: %d, end: %d fieldType: %d \n", start, end, fieldType);
 	Byte data[len];
 	copyByte(data, line+start, len);
-	printf("byte %d \n", (int)data[0]);
+	//printf("byte %d \n", (int)data[0]);
 
 	ans.isnull = false;
 	ans.name = fieldName;

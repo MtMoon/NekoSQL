@@ -34,21 +34,21 @@ int main() {
 
 	im->setIndex(indexinfo.tableName, indexinfo.indexName);
 
-	int debugtype = 3;
+	int debugtype = 2;
 
 	ConDP key;
 	key.isnull = false;
 	key.name = "id";
 	key.type = 1;
-	key.value_str = "aaa";
+	key.value_str = "ccc";
 
-	//im->deleteRecord(key, LP(1,4));
+	//im->deleteRecord(key, LP(1,7));
 
 	if (debugtype == 1) {
 		int cflag = im->createIndex(indexinfo);
 		cout << "create index: " << cflag << endl;
 	} else if (debugtype == 0){
-		im->insertRecord(key, LP(1,7));
+		im->insertRecord(key, LP(1,5));
 	} else if (debugtype == 2) {
 		//cout << im->upDateRecord(key, key2, LP(1,3), LP(1,4)) << endl;;
 
@@ -68,21 +68,21 @@ int main() {
 		if (vec[i].second.type == 0) {
 			cout << vec[i].second.value_int;
 		} else {
-			cout << "lalala" << endl;
+			//cout << "lalala" << endl;
 			cout << vec[i].second.value_str;
 		}
 		cout << endl;
 	}*/
 
 	//插入数据
-	DP ageDp;
+	/*DP ageDp;
 	ageDp.first = "age";
 	Data agedata = RecordTool::int2Data(25);
 	ageDp.second = agedata;
 
 	DP phoneDp;
 	phoneDp.first = "id";
-	Data phonedata = RecordTool::str2Data("bbb",3);
+	Data phonedata = RecordTool::str2Data("ccc",3);
 	phoneDp.second = phonedata;
 
 	DP nameDp;
@@ -118,7 +118,7 @@ int main() {
 		//ConDP key = RecordTool::getFieldValueInRecord(tb, d, "id");
 		//cout << "key: " << key.value_str << endl;
 		RecordTool::printRecord(tb, d);
-	}
+	}*/
 
 
 
