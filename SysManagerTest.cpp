@@ -36,10 +36,10 @@ using namespace std;
 	fieldvec.push_back(f2);
 
 	FieldInfo f3;
-	f3.fieldName = "phone number";
+	f3.fieldName = "id";
 	f3.fieldType = 1;
-	f3.fieldSize = 11;
-	f3.ifNull = true;
+	f3.fieldSize = 3;
+	f3.ifNull = false;
 	f3.key = 0;
 	fieldvec.push_back(f3);
 

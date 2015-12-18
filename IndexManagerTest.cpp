@@ -20,12 +20,12 @@ int main() {
 	dm->setDatabase("test1");
 	im->setDataBase("test1");
 	bool flag = false;
-	IndexInfo indexinfo = im->getIndexInfo("user2","age2",flag);
+	IndexInfo indexinfo = im->getIndexInfo("user","id",flag);
 	cout << "inde exist flag: " << flag << endl;
-	indexinfo.fieldName = "age2";
-	indexinfo.tableName = "user2";
-	indexinfo.fieldType = 0;
-	indexinfo.fieldLen = 4;
+	indexinfo.fieldName = "id";
+	indexinfo.tableName = "user";
+	indexinfo.fieldType = 1;
+	indexinfo.fieldLen = 3;
 	indexinfo.ifFixed = 1;
 	indexinfo.ifNull = 0;
 	indexinfo.indexType = 1;
@@ -34,13 +34,13 @@ int main() {
 
 	im->setIndex(indexinfo.tableName, indexinfo.indexName);
 
-	int debugtype = 2;
+	int debugtype = 3;
 
 	ConDP key;
 	key.isnull = false;
-	key.name = "age2";
-	key.type = 0;
-	key.value_int = 25;
+	key.name = "id";
+	key.type = 1;
+	key.value_str = "aaa";
 
 	//im->deleteRecord(key, LP(1,4));
 
@@ -68,46 +68,57 @@ int main() {
 		if (vec[i].second.type == 0) {
 			cout << vec[i].second.value_int;
 		} else {
+			cout << "lalala" << endl;
 			cout << vec[i].second.value_str;
 		}
 		cout << endl;
 	}*/
 
 	//插入数据
-	/*DP ageDp;
-	ageDp.first = "age2";
+	DP ageDp;
+	ageDp.first = "age";
 	Data agedata = RecordTool::int2Data(25);
 	ageDp.second = agedata;
 
 	DP phoneDp;
-	phoneDp.first = "phone number2";
-	phoneDp.second.first = NULL;
-	phoneDp.second.second = 0;
+	phoneDp.first = "id";
+	Data phonedata = RecordTool::str2Data("bbb",3);
+	phoneDp.second = phonedata;
 
 	DP nameDp;
-	nameDp.first = "name2";
+	nameDp.first = "name";
 	Data namedata = RecordTool::str2Data("yxy",3);
 	nameDp.second = namedata;
 
 	DP array[3];
 	array[2] = nameDp;
 	array[0] = ageDp;
-	array[1] = phoneDp;*/
+	array[1] = phoneDp;
 
-	//dm->deleteRecord("user2", LP(1,1));
+	TableInfo tb = dm->getTableInfo("user");
+	int len = 0;
+	//Byte* d = RecordTool::makeRecord(tb, len, array, 3);
+	//printf("line null byte is: %x", d[12]);
+	//cout << "len: " << len << endl;
+	//RecordTool::printRecord(tb, Data(d,len));
 
-	/*LP rpos;
-	dm->insertRecord("user2", array, 3, rpos);
-	cout << "rpos: " << rpos.first << " " << rpos.second << endl;*/
+	//dm->deleteRecord("user", LP(1,0));
+
+	LP rpos;
+	dm->insertRecord("user", array, 3, rpos);
+	cout << "rpos: " << rpos.first << " " << rpos.second << endl;
 
 
-	/*vector<LP> location = dm->getAllLPInTable("user2");
-	TableInfo tb = dm->getTableInfo("user2");
+	vector<LP> location = dm->getAllLPInTable("user");
+
+	//printf("null map: %x \n", tb.nullMap[0]);
 	for (int i=0; i<location.size(); i++) {
 		cout << location[i].first << " " << location[i].second << endl;
-		Data d = dm->getRecordByLP("user2", location[i]);
+		Data d = dm->getRecordByLP("user", location[i]);
+		//ConDP key = RecordTool::getFieldValueInRecord(tb, d, "id");
+		//cout << "key: " << key.value_str << endl;
 		RecordTool::printRecord(tb, d);
-	}*/
+	}
 
 
 

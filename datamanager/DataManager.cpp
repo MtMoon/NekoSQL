@@ -747,9 +747,12 @@ vector<KP> DataManager::getAllKPInTable(const char* tablename, string fieldName)
 	vector<LP> vec = getAllLPInTable(tablename);
 	int vecSize = vec.size();
 	TableInfo tb = getTableInfo(tablename);
+	//cout << "tablename: " << tablename << endl;
 	for (int i=0; i<vecSize; i++) {
+		//cout << "getAllKPInTable, pos: " << vec[i].first << " " << vec[i].second << endl;
 		Data d = getRecordByLP(tablename, vec[i]);
 		ConDP key = RecordTool::getFieldValueInRecord(tb, d, fieldName);
+		//cout << "getAllKPInTable: " <<  key.value_str << endl;
 		ans.push_back(KP(vec[i], key));
 	}
 

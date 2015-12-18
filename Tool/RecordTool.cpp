@@ -55,6 +55,10 @@ Byte* RecordTool::makeRecord(TableInfo tb, int& len, DP data[], int size) {
 	//定长部分长度
 	int fsize = 0; //定长数据长度.
 	for (int i=0; i<tb.FN; i++) {
+		if (tb.types[i] == 0) {
+			fsize += 4;
+			continue;
+		}
 		fsize += tb.Flen[i];
 	}
 
@@ -67,7 +71,11 @@ Byte* RecordTool::makeRecord(TableInfo tb, int& len, DP data[], int size) {
 	//注意，data中的顺序需要按建表顺序先定长后变长
 	for (int i=0; i<tb.FN; i++) {
 		if (data[i].second.second == 0) {
-			for (int j=0; j<tb.Flen[i]; j++) {
+			int tempSize = tb.Flen[i];
+			if (tb.types[i] == 0) {
+				tempSize = 4;
+			}
+			for (int j=0; j<tempSize; j++) {
 						Byte tt;
 						tt &= 0x00;
 						line[count++] = tt;
@@ -92,12 +100,16 @@ Byte* RecordTool::makeRecord(TableInfo tb, int& len, DP data[], int size) {
 		Byte nmap;
 		nmap &= 0x00;
 		for (int j=0; j<8; j++) {
+			if (j+i*8>=size) {
+				break;
+			}
 			if (data[j+i*8].second.first == NULL) {
 				nmap |= (1<<j);
 			}
 		}
 		line[count++] = nmap;
 	}
+	//printf("bull byte in make %x \n", line[count-1]);
 
 	//变列数目
 	int vNum = tb.VN;
@@ -214,6 +226,8 @@ ConDP RecordTool::getFieldValueInRecord(TableInfo& tb, Data record, string field
 	ans.value_int = 0;
 	ans.value_str = "";
 
+
+
 	if (record.first == NULL && record.second == 0) {
 		return ans;
 	}
@@ -292,9 +306,13 @@ ConDP RecordTool::getFieldValueInRecord(TableInfo& tb, Data record, string field
 	}
 
 	//获取数据
+	line = record.first;
+	printRecord(tb, record);
 	int len = end - start;
+	printf("start: %d, end: %d fieldType: %d \n", start, end, fieldType);
 	Byte data[len];
 	copyByte(data, line+start, len);
+	printf("byte %d \n", (int)data[0]);
 
 	ans.isnull = false;
 	ans.name = fieldName;
@@ -304,7 +322,7 @@ ConDP RecordTool::getFieldValueInRecord(TableInfo& tb, Data record, string field
 		char str[len+1];
 		byte2Str(str, data, len);
 		str[len] = '\0';
-		ans.value_str = string(str);
+		ans.value_str = string(data2Str(Data(data, len)));
 	}
 	return ans;
 }
@@ -397,6 +415,10 @@ LP RecordTool::getSegOffset(TableInfo& tb, string& segname) {
 			order = i;
 			break;
 		}
+		if (tb.types[i] == 0) {
+			off += 4;
+			continue;
+		}
 		off += tb.Flen[i];
 	}
 	return LP(off+5, order);
@@ -476,6 +498,7 @@ void RecordTool::printRecord(TableInfo& tb, Data record) {
 	Byte nullmap[nullLen];
 	int off = 7+flen;
 	copyByte(nullmap, line+off, nullLen);
+	//printf("num byte %x \n", nullmap[0]);
 	for (int i=0; i<nullLen; i++) {
 		for (int j=0; j<8; j++) {
 			printf("%d ", (nullmap[i]>>j) & 1);
