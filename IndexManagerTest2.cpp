@@ -15,22 +15,34 @@
 using namespace std;
 
 //解析一条数据
-void analyse(string sql, int& intvalue) {
-	string str = sql.substr(2, sql.length()-3);
-	if (str[0] <'0' || str[0]>'9') {
-		intvalue = -1;
-		return;
+string analyse(string sql) {
+
+	if (sql.find("INSERT") != string::npos) {
+		return "";
 	}
-	//cout << str << endl;
-	int end = 0;
+
+	string str = sql;
+	int start = 0;
 	for (int i=0; i<str.length(); i++) {
-		if (str[i] == ',') {
+		if (str[i] == '\'') {
+			start = i;
+			break;
+		}
+	}
+	start++;
+	int end = 0;
+
+	for (int i=start; i<str.length(); i++) {
+		if (str[i] == '\'') {
 			end = i;
 			break;
 		}
 	}
-	string sub = str.substr(0,end);
-	intvalue = std::atoi(sub.c_str() );
+	cout << "start: " << start << " end: " << end << endl;
+	string sub = str.substr(start,end-start);
+	//intvalue = std::atoi(sub.c_str() );
+	return sub;
+
 }
 
 int main() {
@@ -39,7 +51,7 @@ int main() {
 	dm->setDatabase("orderDB");
 	im->setDataBase("orderDB");
 	bool flag = false;
-	IndexInfo indexinfo = im->getIndexInfo("publisher","id",flag);
+	IndexInfo indexinfo = im->getIndexInfo("publisher","name",flag);
 	cout << "inde exist flag: " << flag << endl;
 	cout << indexinfo.tableName << "#" << indexinfo.indexName << endl;
 	im->setIndex(indexinfo.tableName, indexinfo.indexName);
@@ -52,11 +64,11 @@ int main() {
 
 	if (debugType == 0) {
 
-		indexinfo.fieldName = "id";
+		indexinfo.fieldName = "name";
 		indexinfo.tableName = "publisher";
-		indexinfo.fieldType = 0;
-		indexinfo.fieldLen = 4;
-		indexinfo.ifFixed = 1;
+		indexinfo.fieldType = 1;
+		indexinfo.fieldLen = 0;
+		indexinfo.ifFixed = 0;
 		indexinfo.ifNull = 0;
 		indexinfo.indexType = 1;
 		indexinfo.legal = true;
@@ -65,7 +77,7 @@ int main() {
 		cout << "create index: " << cflag << endl;
 	} else if (debugType == 1) {
 
-		ifstream fin("sqlstatements/publisher.sql");
+		ifstream fin("sqlstatements/publisher2.sql");
 				if (!fin) {
 					cout << "file not fount" << endl;
 					exit(0);
@@ -76,28 +88,27 @@ int main() {
 				int id2 = 0;
 				int count = 0;
 				while (getline(fin,line)) {
-					int value =  0;
-					analyse(line, value);
-					if (line == "" || line == " " || value==-1) {
+					string value =  "";
+					value = analyse(line);
+
+					if (line == "" || line == " " || value== "") {
 						continue;
 					}
-					//cout << value << endl;
 
 
 					ConDP key;
 					key.isnull = false;
-					key.name = "id";
-					key.type = 0;
-					key.value_str = "";
-					key.value_int = value;
+					key.name = "name";
+					key.type = 1;
+					key.value_str = value;
 					vector<LP> indexAns = im->searchKey(key);
 					cout << "**********" << "line:" << line << "#" << count << "#" << value << "#" << indexAns.size() << "************" << endl;
-					assert(indexAns.size()==1);
-					assert(indexAns[0].first == id1 && indexAns[0].second == id2);
+					//assert(indexAns[0].first == id1 && indexAns[0].second == id2);
 					//cout << "index search ans: " << indexAns.size() << endl;
-					/*for (int i=0; i<indexAns.size(); i++) {
+					for (int i=0; i<indexAns.size(); i++) {
 						cout << indexAns[i].first << " " << indexAns[i].second << endl;
-					}*/
+					}
+					assert(indexAns.size()==0);
 
 					id2++;
 					if (id2%100==0) {
@@ -110,7 +121,7 @@ int main() {
 				fin.close();
 
 	} else if (debugType == 2) {
-		ifstream fin("sqlstatements/publisher.sql");
+		ifstream fin("sqlstatements/publisher2.sql");
 		if (!fin) {
 			cout << "file not fount" << endl;
 			exit(0);
@@ -121,22 +132,21 @@ int main() {
 		int id2 = 0;
 		int count = 0;
 		while (getline(fin,line)) {
-			int value =  0;
-			analyse(line, value);
-			if (line == "" || line == " " || value == -1) {
+			string value =  "";
+			value = analyse(line);
+			cout << "#" << value << "#" << endl;
+			if (line == "" || line == " " || value == "") {
 				continue;
 			}
-			//cout << value << endl;
-
 			ConDP key;
 			key.isnull = false;
-			key.name = "id";
-			key.type = 0;
-			key.value_str = "";
-			key.value_int = value;
-			vector<LP> indexAns = im->searchKey(key);
-			assert(indexAns.size() == 0);
-			cout << count << " insert:" << value << " " << im->insertRecord(key, LP(id1,id2)) << endl;
+			key.name = "name";
+			key.type = 1;
+			key.value_str = value;
+			//vector<LP> indexAns = im->searchKey(key);
+			cout << "*******" << count << "  insert:" << "#" << value << "# " << endl;
+			//assert(indexAns.size() == 0);
+			cout << "insert flag: " << im->insertRecord(key, LP(id1,id2)) << endl;
 
 			id2++;
 			if (id2%100==0) {
@@ -147,6 +157,43 @@ int main() {
 		}
 		fin.clear();
 		fin.close();
+	} else if (debugType == 3) { //删除
+		ifstream fin("sqlstatements/publisher2.sql");
+				if (!fin) {
+					cout << "file not fount" << endl;
+					exit(0);
+				}
+				string line = "";
+				getline(fin,line);
+				int id1 = 1;
+				int id2 = 0;
+				int count = 0;
+				while (getline(fin,line)) {
+					string value =  "";
+					value = analyse(line);
+					//cout << "#" << value << "#" << endl;
+					if (line == "" || line == " " || value == "") {
+						continue;
+					}
+					ConDP key;
+					key.isnull = false;
+					key.name = "name";
+					key.type = 1;
+					key.value_str = value;
+					//vector<LP> indexAns = im->searchKey(key);
+					cout << "*******" << count << "  delete:" << "#" << value << "# " << endl;
+					//assert(indexAns.size() == 0);
+					cout << "delete flag: " << im->deleteRecord(key, LP(id1,id2)) << endl;
+
+					id2++;
+					if (id2%100==0) {
+						id2 = 0;
+						id1++;
+					}
+					count++;
+				}
+				fin.clear();
+				fin.close();
 	}
 
 
