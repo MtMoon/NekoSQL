@@ -22,7 +22,7 @@ IndexManager::IndexManager(DataManager* datamanager) {
 	currentIndex = "";
 	currentFileID = -1;
 	hot = 0;
-	_order = 10;
+	_order = 50;
 	lower_bound = ceil(double(_order) / 2) -1;
 	upper_bound = _order-1;
 }

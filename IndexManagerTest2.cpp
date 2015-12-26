@@ -77,7 +77,7 @@ int main() {
 		cout << "create index: " << cflag << endl;
 	} else if (debugType == 1) {
 
-		ifstream fin("sqlstatements/publisher2.sql");
+		ifstream fin("sqlstatements/publisher.sql");
 				if (!fin) {
 					cout << "file not fount" << endl;
 					exit(0);
@@ -100,15 +100,15 @@ int main() {
 					key.isnull = false;
 					key.name = "name";
 					key.type = 1;
-					key.value_str = value;
+					key.value_str = value + "yxy";
 					vector<LP> indexAns = im->searchKey(key);
 					cout << "**********" << "line:" << line << "#" << count << "#" << value << "#" << indexAns.size() << "************" << endl;
-					//assert(indexAns[0].first == id1 && indexAns[0].second == id2);
+					//assert(indexAns[0].first == id1+1 && indexAns[0].second == id2+1);
 					//cout << "index search ans: " << indexAns.size() << endl;
-					for (int i=0; i<indexAns.size(); i++) {
+					/*for (int i=0; i<indexAns.size(); i++) {
 						cout << indexAns[i].first << " " << indexAns[i].second << endl;
-					}
-					assert(indexAns.size()==0);
+					}*/
+					assert(indexAns.size()>0);
 
 					id2++;
 					if (id2%100==0) {
@@ -121,7 +121,7 @@ int main() {
 				fin.close();
 
 	} else if (debugType == 2) {
-		ifstream fin("sqlstatements/publisher2.sql");
+		ifstream fin("sqlstatements/publisher.sql");
 		if (!fin) {
 			cout << "file not fount" << endl;
 			exit(0);
@@ -146,7 +146,10 @@ int main() {
 			//vector<LP> indexAns = im->searchKey(key);
 			cout << "*******" << count << "  insert:" << "#" << value << "# " << endl;
 			//assert(indexAns.size() == 0);
-			cout << "insert flag: " << im->insertRecord(key, LP(id1,id2)) << endl;
+			int flag = 0;
+			flag = im->insertRecord(key, LP(id1,id2));
+			cout << "insert flag: " <<  flag << endl;
+			assert(flag == 1);
 
 			id2++;
 			if (id2%100==0) {
@@ -158,7 +161,7 @@ int main() {
 		fin.clear();
 		fin.close();
 	} else if (debugType == 3) { //删除
-		ifstream fin("sqlstatements/publisher2.sql");
+		ifstream fin("sqlstatements/publisher.sql");
 				if (!fin) {
 					cout << "file not fount" << endl;
 					exit(0);
@@ -183,7 +186,10 @@ int main() {
 					//vector<LP> indexAns = im->searchKey(key);
 					cout << "*******" << count << "  delete:" << "#" << value << "# " << endl;
 					//assert(indexAns.size() == 0);
-					cout << "delete flag: " << im->deleteRecord(key, LP(id1,id2)) << endl;
+					int flag = 0;
+					flag = im->deleteRecord(key, LP(id1,id2));
+					cout << "delete flag: " <<  flag << endl;
+					assert(flag == 1);
 
 					id2++;
 					if (id2%100==0) {
@@ -194,6 +200,50 @@ int main() {
 				}
 				fin.clear();
 				fin.close();
+	} else if (debugType == 4) { //更新
+		ifstream fin("sqlstatements/publisher.sql");
+		if (!fin) {
+			cout << "file not fount" << endl;
+			exit(0);
+		}
+		string line = "";
+		getline(fin,line);
+		int id1 = 1;
+		int id2 = 0;
+		int count = 0;
+		while (getline(fin,line)) {
+			string value =  "";
+			value = analyse(line);
+			//cout << "#" << value << "#" << endl;
+			if (line == "" || line == " " || value == "") {
+				continue;
+			}
+			ConDP oldkey;
+			oldkey.isnull = false;
+			oldkey.name = "name";
+			oldkey.type = 1;
+			oldkey.value_str = value;
+
+
+			ConDP newkey = oldkey;
+			newkey.value_str += "yxy";
+			//vector<LP> indexAns = im->searchKey(key);
+			cout << "*******" << count << "  update:" << "#" << value << "# " << endl;
+			//assert(indexAns.size() == 0);
+			int flag = 0;
+			flag =  im->upDateRecord(oldkey, newkey, LP(id1,id2), LP(id1+1,id2+1)) ;
+			cout << "update flag: " << flag << endl;
+			assert(flag == 1);
+
+			id2++;
+			if (id2%100==0) {
+				id2 = 0;
+				id1++;
+			}
+			count++;
+		}
+		fin.clear();
+		fin.close();
 	}
 
 
