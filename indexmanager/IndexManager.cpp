@@ -22,12 +22,13 @@ IndexManager::IndexManager(DataManager* datamanager) {
 	currentIndex = "";
 	currentFileID = -1;
 	hot = 0;
-	_order = 3;
+	_order = 50;
 	lower_bound = ceil(double(_order) / 2) -1;
 	upper_bound = _order-1;
 }
 
 IndexManager::~IndexManager() {
+	closeIndex(currentTable, currentIndex);
 	delete ifm;
 	delete ibm;
 }
@@ -94,6 +95,8 @@ int IndexManager::createIndex( IndexInfo indexInfo) {
 
 	RecordTool::int2Byte(meta+off, 2, indexInfo.fieldLen);
 	off += 2;
+
+	//cout << "off: " << off << endl;
 
 
 	RecordTool::copyByte(page, meta, metaLen);
@@ -173,6 +176,20 @@ IndexInfo IndexManager::getIndexInfo(string tableName, string fieldName, bool& f
 
 }
 
+IndexInfo IndexManager::getIndexInfo2(string tableName, string indexName, bool& flag) {
+	flag = false;
+	for (map<string, IndexInfo>::iterator it = indexMap.begin(); it != indexMap.end(); ++it) {
+		if (it->second.tableName == tableName && it->second.indexName == indexName) {
+			flag = true;
+			return it->second;
+		}
+	}
+	IndexInfo info;
+	info.legal = false;
+	return info;
+
+}
+
 void  IndexManager::setDataBase(string dbName) {
 	currentDB = dbName;
 	currentIndexInfo.legal = false;
@@ -184,6 +201,7 @@ void IndexManager::setIndex(string tableName, string indexName) {
 	//openIndex(tableName, indexName);
 	currentTable = tableName;
 	currentIndex = indexName;
+	currentIndexInfo = getCurrentIndexInfo();
 }
 
 //查找key值满足特定条件的记录的位置
@@ -196,6 +214,7 @@ vector<LP> IndexManager::searchKey(ConDP key) {
 	if (v == -1) {
 		return ans;
 	}
+	assert (v!= 0);
 
 	cout << "in searchKey, get leaf node id: " << v << endl;
 	IndexInfo indexinfo = getCurrentIndexInfo();
@@ -420,6 +439,7 @@ int  IndexManager::search(ConDP key) {
 	int next = 0, type = 0;
 	while (v != -1) {
 		next = nodeSearch(key, v, type);
+		assert (v!= 0);
 		if (type == 1) { //若是找到了叶级页，则之间返回
 			return next;
 		}
@@ -1081,6 +1101,7 @@ int  IndexManager::newIndexPage(int type, int parent) {
 
 	int pid = pageNum;
 	int index = 0;
+	assert(pid != 0);
 	openIndex(currentTable, currentIndex);
 	ibm->allocPage(currentFileID, pid, index, false);
 	Byte* page = (Byte*)(ibm->getPage(currentFileID, pid, index));
@@ -1136,20 +1157,28 @@ IndexInfo IndexManager::getCurrentIndexInfo() {
 		return currentIndexInfo;
 	}
 
-	openIndex(currentTable, currentIndex);
+	bool flag = false;
+	IndexInfo indexinfo = getIndexInfo2(currentTable, currentIndex, flag);
+	assert(flag);
+	/*openIndex(currentTable, currentIndex);
 
-	//cout << "currentTable: " << currentTable << " currentIndex: " << currentIndex << " currentFileID: " << currentFileID << endl;
+	cout << "_________currentTable: " << currentTable << " currentIndex: " << currentIndex << " currentFileID: " << currentFileID <<
+			" currentIndex leagl" << currentIndexInfo.legal << "_______________________" << endl;
 
 	//当前存储的索引不合法则重新读s取
 	int pageindex = 0;
-	ibm->getPage(currentFileID, 0, pageindex);
-	Byte* page = (Byte*)ibm->addr[pageindex];
+	Byte* metapage = (Byte*)ibm->getPage(currentFileID, 0, pageindex);
+	Byte page[PAGE_SIZE];
+	RecordTool::copyByte(page, metapage, PAGE_SIZE);
+	ibm->release(pageindex);
+	//ibm->markDirty(pageindex);
+	//ibm->writeBack(pageindex);
+
 	IndexInfo indexinfo;
 	char tableName[24+1];
 	int off = 0;
 	RecordTool::byte2Str(tableName, page + off, 24);
 	tableName[24] = '\0';
-	//cout << "tableName" <<tableName << endl;
 	off += 24;
 	char fieldName[24+1];
 	RecordTool::byte2Str(fieldName, page + off, 24);
@@ -1163,8 +1192,8 @@ IndexInfo IndexManager::getCurrentIndexInfo() {
 	indexinfo.tableName = string(tableName);
 	indexinfo.fieldName = string(fieldName);
 	indexinfo.indexName = string(indexName);
-	//cout << indexinfo.tableName << "#" << currentTable << endl;
-	//cout << indexinfo.indexName << "#" << currentIndex << endl;
+	cout << "#"+indexinfo.tableName << "#" << currentTable << endl;
+	cout << indexinfo.indexName << "#" << currentIndex << endl;
 	assert(indexinfo.indexName == currentIndex && indexinfo.tableName == currentTable);
 
 	int fieldType = 0;
@@ -1184,8 +1213,7 @@ IndexInfo IndexManager::getCurrentIndexInfo() {
 	off += 1;
 
 	indexinfo.fieldLen = RecordTool::byte2Int(page+off, 2);
-	indexinfo.legal = true;
-
+	indexinfo.legal = true;*/
 	return indexinfo;
 }
 

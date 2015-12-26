@@ -57,6 +57,8 @@ public:
 
 	 //获取某个表某个字段的indexinfo, flag为false表示索引不存在
 	IndexInfo getIndexInfo(string tableName, string fieldName, bool& flag);
+	IndexInfo getIndexInfo2(string tableName, string indexName, bool& flag);
+	IndexInfo getCurrentIndexInfo();
 
 private:
 
@@ -84,7 +86,6 @@ private:
 	int is_dir_exist(const char* dirpath);
 	int is_file_exist(const char* filepath);
 	int getFilePageNum(const char* filepath); //获取文件页数
-	IndexInfo getCurrentIndexInfo();
 	bool ConDPEqual(ConDP key1, ConDP key2); //判断两个key是否相等
 	int loadIndexMap(); //加载已有索引信息
 	int addIndexInfo(IndexInfo indexinfo); //向索引文件表中加入追加写入索引信息

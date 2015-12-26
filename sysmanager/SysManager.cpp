@@ -252,7 +252,7 @@ vector<FieldInfo> SysManager::descTable(string tableName, int& flag) {
 		fi.fieldType = tb.types[i];
 		fi.fieldSize = tb.Flen[i];
 		fi.ifNull = (tb.nullMap[i/8] >> (i%8))&1;
-		//cout << "null f: " << (int)((tb.nullMap[i/8] >> (i%8))&1);
+		cout << "null f: " << (int)((tb.nullMap[i/8] >> (i%8))&1) << endl;;
 		fi.key = tb.keys[i];
 		ans.push_back(fi);
 	}
@@ -265,7 +265,7 @@ vector<FieldInfo> SysManager::descTable(string tableName, int& flag) {
 			fi.fieldSize = tb.Vlen[i];
 			int which = tb.FN + i;
 			fi.ifNull = (tb.nullMap[which/8] >> (which%8))&1;
-			//cout << "null v: " << (int)((tb.nullMap[which/8] >> (which%8))&1);
+			//cout << "null v: " << (int)((tb.nullMap[which/8] >> (which%8))&1) << endl;;
 			fi.key = tb.keys[tb.FN+i];
 			ans.push_back(fi);
 	}
@@ -321,17 +321,23 @@ int SysManager::createTable(string tableName, vector<FieldInfo> tbvec) {
 
 	int nlen = ceil(double(tb.FN+tb.VN)/8);
 	tb.nullMap = new Byte[nlen];
+	for (int i=0; i<nlen; i++) {
+		tb.nullMap[i] &= 0x00;
+	}
 
 	for (int i=0; i<tbvec.size(); i++) {
 			if (tbvec[i].fieldType == 2) { //变长varchar
 				tb.Vname[vc] = tbvec[i].fieldName;
+				//cout << "#" <<  tb.Vname[vc] << "#"  << endl;
 				tb.Vlen[vc] = tbvec[i].fieldSize;
 				tb.types[tb.FN+vc] = tbvec[i].fieldType;
 				tb.keys[tb.FN+vc] = tbvec[i].key;
 
 				int which = tb.FN + vc;
 				int ifnull = 0;
+				//cout << tbvec[i].ifNull << endl;
 				if (tbvec[i].ifNull) {
+					//cout << tb.Vname[vc]  << endl;
 					ifnull = 1;
 				}
 				tb.nullMap[which/8] |= (ifnull<<(which%8));

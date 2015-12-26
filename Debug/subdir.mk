@@ -6,18 +6,21 @@
 CPP_SRCS += \
 ../DataManagerTest.cpp \
 ../IndexManagerTest.cpp \
+../IndexManagerTest2.cpp \
 ../SysManagerTest.cpp \
 ../test.cpp 
 
 OBJS += \
 ./DataManagerTest.o \
 ./IndexManagerTest.o \
+./IndexManagerTest2.o \
 ./SysManagerTest.o \
 ./test.o 
 
 CPP_DEPS += \
 ./DataManagerTest.d \
 ./IndexManagerTest.d \
+./IndexManagerTest2.d \
 ./SysManagerTest.d \
 ./test.d 
 

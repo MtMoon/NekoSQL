@@ -13,7 +13,7 @@
 
 using namespace std;
 
-int main() {
+/*int main() {
 
 	DataManager* dm = new DataManager();
 	IndexManager* im = new IndexManager(dm);
@@ -62,20 +62,10 @@ int main() {
 
 
 
-	/*vector<KP> vec = dm->getAllKPInTable(indexinfo.tableName.c_str(), indexinfo.fieldName);
-	for (int i=0; i<vec.size(); i++) {
-		cout << "pos: " << vec[i].first.first << " " << vec[i].first.second << " ";
-		if (vec[i].second.type == 0) {
-			cout << vec[i].second.value_int;
-		} else {
-			//cout << "lalala" << endl;
-			cout << vec[i].second.value_str;
-		}
-		cout << endl;
-	}*/
+
 
 	//插入数据
-	/*DP ageDp;
+	DP ageDp;
 	ageDp.first = "age";
 	Data agedata = RecordTool::int2Data(25);
 	ageDp.second = agedata;
@@ -104,13 +94,19 @@ int main() {
 
 	//dm->deleteRecord("user", LP(1,0));
 
-	LP rpos;
-	dm->insertRecord("user", array, 3, rpos);
-	cout << "rpos: " << rpos.first << " " << rpos.second << endl;
+	//LP rpos;
+	//dm->insertRecord("user", array, 3, rpos);
+	//cout << "rpos: " << rpos.first << " " << rpos.second << endl;
 
 
+	DP uparray[1];
+	DP updata;
+	updata.first = "id";
+	updata.second = RecordTool::str2Data("bab",3);
+	uparray[0] = updata;
+
+	dm->updateRecord("user", LP(1,0), uparray, 1) ;
 	vector<LP> location = dm->getAllLPInTable("user");
-
 	//printf("null map: %x \n", tb.nullMap[0]);
 	for (int i=0; i<location.size(); i++) {
 		cout << location[i].first << " " << location[i].second << endl;
@@ -118,11 +114,11 @@ int main() {
 		//ConDP key = RecordTool::getFieldValueInRecord(tb, d, "id");
 		//cout << "key: " << key.value_str << endl;
 		RecordTool::printRecord(tb, d);
-	}*/
+	}
 
 
 
 	return 0;
-}
+}*/
 
 

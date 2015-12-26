@@ -183,13 +183,15 @@ bool DataManager::insertRecord(const char* tablename, Data data, LP pos) {
 		closeTable(tablename);
 		return false;
 	}
+
 	int slotOffset = PAGE_SIZE-(slotID+1)*2;
 	int slotVal = RecordTool::byte2Int(buf+slotOffset, 2);
-	if (slotVal != -1)
+	/*if (slotVal != -1)
 	{
 		closeTable(tablename);
 		return false;
-	}
+	}*/
+	cout << "lalala1" << endl;
 
 	int start = PAGE_SIZE-slotNum*2-spaceLeft;
 	RecordTool::int2Byte(buf+slotOffset, 2, start);
@@ -205,6 +207,7 @@ bool DataManager::insertRecord(const char* tablename, Data data, LP pos) {
 bool DataManager::deleteRecord(const char* tablename, LP pos) {
 	int pageNum =  getPageNum(tablename);
 	openTable(tablename);
+	cout << "lalala" << endl;
 
 	int pageID = pos.first, slotID = pos.second;
 	if (pageID < 1 || pageID >= pageNum)
@@ -293,7 +296,9 @@ bool DataManager::updateRecord(const char* tablename, LP pos, DP data[], int siz
 			flag = true;
 			continue;
 		}
+
 		LP p = RecordTool::getSegOffset(tb, data[i].first);
+		cout << p.first << " " << p.second << endl;
 		//修改定长数据
 		temp = d.first + p.first;
 		for (int j=0; j<data[i].second.second; j++) {
