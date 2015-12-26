@@ -45,7 +45,7 @@ string analyse(string sql) {
 
 }
 
-int main() {
+/*int main() {
 	DataManager* dm = new DataManager();
 	IndexManager* im = new IndexManager(dm);
 	dm->setDatabase("orderDB");
@@ -105,9 +105,9 @@ int main() {
 					cout << "**********" << "line:" << line << "#" << count << "#" << value << "#" << indexAns.size() << "************" << endl;
 					//assert(indexAns[0].first == id1+1 && indexAns[0].second == id2+1);
 					//cout << "index search ans: " << indexAns.size() << endl;
-					/*for (int i=0; i<indexAns.size(); i++) {
+					for (int i=0; i<indexAns.size(); i++) {
 						cout << indexAns[i].first << " " << indexAns[i].second << endl;
-					}*/
+					}
 					assert(indexAns.size()>0);
 
 					id2++;
@@ -249,7 +249,7 @@ int main() {
 
 
 	return 0;
-}
+}*/
 
 
 

@@ -13,6 +13,9 @@ RM := rm -rf
 -include indexmanager/subdir.mk
 -include datamanager/subdir.mk
 -include Tool/subdir.mk
+-include SynAnalyze/subdir.mk
+-include QueryProcessor/subdir.mk
+-include ErrorHandler/subdir.mk
 -include subdir.mk
 -include objects.mk
 

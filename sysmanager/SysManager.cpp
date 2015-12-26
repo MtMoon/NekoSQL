@@ -178,13 +178,16 @@ vector<string> SysManager::showTables(int& flag) {
 			int pos = name.find(".data");
 			if (pos != string::npos) {
 				string tbname = name.substr(0, pos);
+				//cout << "name: " << tbname << endl;
 				ans.push_back(tbname);
 			}
 		}
 	}
 	closedir(dir);
-	if (!ans.empty()) {
+	if (ans.empty()) {
 		flag = 0;
+	} else {
+		flag = 1;
 	}
 	return ans;
 }
