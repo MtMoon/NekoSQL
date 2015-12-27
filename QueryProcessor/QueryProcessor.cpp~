@@ -629,6 +629,11 @@ bool QueryProcessor::ConditionFilter(const string& tableName, const vector<Field
 	else if (op == "=")
 	{
 		records = dataManager->searchRecord(tableName.c_str(), condi, 0);
+		if (condi.type == 1)
+		{
+			cout << condi.value_str << endl;
+			cout << condi.value_str.length() << endl;
+		}
 	}
 	else if (op == "!=")
 	{

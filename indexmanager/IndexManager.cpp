@@ -62,6 +62,7 @@ int IndexManager::createIndex( IndexInfo indexInfo) {
 		return -4;
 	}
 
+	closeIndex(currentTable, currentIndex);
 
 	int fileID;
 	ifm->openFile(filePath.c_str(), fileID);
@@ -355,6 +356,9 @@ int  IndexManager::openIndex(string tableName, string indexName) {
  */
 int  IndexManager::closeIndex( string tableName, string indexName) {
 	if (tableName != currentTable || indexName != currentIndex || currentFileID == -1) {
+		return 0;
+	}
+	if (tableName == "" || indexName == "" || currentFileID == -1) {
 		return 0;
 	}
 	ifm->closeFile(currentFileID);
@@ -996,9 +1000,9 @@ int  IndexManager::leafNodeSearch(ConDP conkey, int v, int searchtype, int nodet
 			char key[end-start+1];
 			RecordTool::byte2Str(key, line+start, end-start);
 			key[end-start] = '\0';
-			cout << "leaf node search, line key: " << key << endl;
+			cout << "leaf node search, line key: " << string(key) << endl;
 			cout << "leaf node searcg, con key: " << conkey.value_str << endl;
-			if ((searchtype == 0 && conkey.value_str == key) || ((searchtype == 1 && conkey.value_str <key))) {
+			if ((searchtype == 0 && conkey.value_str == string(key)) || ((searchtype == 1 && conkey.value_str <string(key)))) {
 				flag = true;
 				break;
 			}

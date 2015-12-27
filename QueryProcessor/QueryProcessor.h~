@@ -45,7 +45,7 @@ public:
 	bool stringOverflowFlag;
 
 	bool IsInt(const std::string& value);
-	bool MakeData(const FieldInfo& fieldInfo, const std::string& str, const std::string& opType, Data& data, ConDP& condi);
+	bool MakeData(const FieldInfo& fieldInfo, const std::string& str, const std::string& opType, Data& data);
 	std::vector<LP> RemainLP(const std::vector<LP>& father, const std::vector<LP>& son);
 	bool IncCounter(std::vector<int>& counter, const std::vector<int>& limit);
 	Relation Linkage(const Relation& leftRel, const Relation& rightRel);

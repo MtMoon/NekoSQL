@@ -394,7 +394,7 @@ vector<LP> DataManager::searchRecord(const char*tablename, ConDP condi,  int cmp
 	//获取有空余byte的页的index
 	int pageindex = 0;
 	vector<LP> vec;
-	if (cmpType != 0 &&  cmpType != 1 && cmpType != 2 && cmpType != 3) {
+	if (cmpType != 0 &&  cmpType != 1 && cmpType != 2 && cmpType != 3 && cmpType != 4 && cmpType != 5) {
 		return vec;
 	}
 	for (int i=1; i<pageNum; i++) {
@@ -406,7 +406,7 @@ vector<LP> DataManager::searchRecord(const char*tablename, ConDP condi,  int cmp
 
 vector<LP> DataManager::searchRecordInPage(const char* tablename, const int pageorder, ConDP condi,  int cmpType) {
 	vector<LP> vec;
-	if (cmpType != 0 &&  cmpType != 1 && cmpType != 2 && cmpType != 3) {
+	if (cmpType != 0 &&  cmpType != 1 && cmpType != 2 && cmpType != 3 && cmpType != 4 && cmpType != 5) {
 		return vec;
 	}
 

@@ -194,6 +194,14 @@ bool RecordTool::hasSameSegVal(TableInfo& tb, Data record, ConDP condi, int cmpT
 		}
 	}
 
+	if (cmpType == 5) {
+		if (!fieldValue.isnull) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	//整数
 	if (condi.type == 0) {
 		//printf("age %d \n", fieldValue.value_int);
@@ -203,6 +211,8 @@ bool RecordTool::hasSameSegVal(TableInfo& tb, Data record, ConDP condi, int cmpT
 			ans = true;
 		} else if (cmpType == 2 &&  fieldValue.value_int < condi.value_int ) {
 			ans = true;
+		} else if (cmpType == 4 &&  fieldValue.value_int != condi.value_int )  {
+			ans = true;
 		}
 	} else if (condi.type == 1) { //字符串
 		if (cmpType == 0 && condi.value_str == fieldValue.value_str) {
@@ -210,6 +220,8 @@ bool RecordTool::hasSameSegVal(TableInfo& tb, Data record, ConDP condi, int cmpT
 		} else if (cmpType == 1 && fieldValue.value_str > condi.value_str ) {
 			ans = true;
 		} else if (cmpType == 2 && fieldValue.value_str < condi.value_str ) {
+			ans = true;
+		} else if (cmpType == 4 && fieldValue.value_str != condi.value_str ) {
 			ans = true;
 		}
 	}
