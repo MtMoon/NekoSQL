@@ -24,6 +24,7 @@ This is the course project of *Database System* by MtMoon & magicwish
 + FN+VN个Byte 表示各个字段键类型 0为不是key，1为一般key，2为primary key
 + FN+VN个Byte 各个字段的类型  目前：0 int 1 char 2 varchar，其余非法
 + ceil((FN+VN)/8) Byte bull位图
++ (FV+VN) 个byte，分别存储原位置对应的重构位置信息
 
 >每个列名24Byte, 即24个char，不足时补0(null)，**建表时需对列名长度进行检查**
 
@@ -101,3 +102,6 @@ This is the course project of *Database System* by MtMoon & magicwish
 
 + create [UNIQUE|CLUSTERED|NONCLUSTERED] index 索引名称 on 表名(列名) 。
    当选用CLUSTERED时，默认为UNIQUE的，当选用NONCLUSTERED时，可选择是否为UNIQUE
+   
++ create UNIQUE|NONNIQUE index 索引名 on 表名(列名)
++ drop index 表名 索引名

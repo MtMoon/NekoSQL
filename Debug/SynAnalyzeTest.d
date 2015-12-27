@@ -18,7 +18,11 @@ SynAnalyzeTest.d: ../SynAnalyzeTest.cpp ../SynAnalyze/SynAnalyze.h \
  ../SynAnalyze/../QueryProcessor/QueryProcessor.h \
  ../SynAnalyze/../QueryProcessor/../datamanager/DataManager.h \
  ../SynAnalyze/../QueryProcessor/../sysmanager/SysManager.h \
- ../SynAnalyze/../QueryProcessor/../ErrorHandler/ErrorHandler.h
+ ../SynAnalyze/../QueryProcessor/../ErrorHandler/ErrorHandler.h \
+ ../SynAnalyze/../indexmanager/IndexManager.h \
+ ../SynAnalyze/../indexmanager/../bufmanager/BufPageManager.h \
+ ../SynAnalyze/../indexmanager/../datamanager/DataManager.h \
+ ../SynAnalyze/../indexmanager/../Tool/RecordTool.h
 
 ../SynAnalyze/SynAnalyze.h:
 
@@ -61,3 +65,11 @@ SynAnalyzeTest.d: ../SynAnalyzeTest.cpp ../SynAnalyze/SynAnalyze.h \
 ../SynAnalyze/../QueryProcessor/../sysmanager/SysManager.h:
 
 ../SynAnalyze/../QueryProcessor/../ErrorHandler/ErrorHandler.h:
+
+../SynAnalyze/../indexmanager/IndexManager.h:
+
+../SynAnalyze/../indexmanager/../bufmanager/BufPageManager.h:
+
+../SynAnalyze/../indexmanager/../datamanager/DataManager.h:
+
+../SynAnalyze/../indexmanager/../Tool/RecordTool.h:

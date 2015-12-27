@@ -609,8 +609,43 @@ TableInfo DataManager::loadTableInfo(const char* tablename) {
 	return tb;
 }
 
+
+vector<int> DataManager::loadPosInfo(const char* tablename) {
+		openTable(tablename);
+		int pageindex = 0;
+
+		vector<int> ans;
+
+		Byte* page = (Byte*)bm->getPage(currentFileID, 0, pageindex);
+		Byte* temp = page;
+		//get FN
+		int fn = 0;
+		fn  =  RecordTool::byte2Int(temp,2);
+		//get vn
+		int vn = 0;
+		temp = page;
+		vn =  RecordTool::byte2Int(temp+2,2);
+
+		//定长列名
+		int off = 4;
+		off += 24*(vn+fn);
+		off += 4*(vn+fn);
+		off += 2*(vn+fn);
+		//cout << "off: " << off << endl;
+		//获取null位图
+		int nlen = ceil(double(fn + vn) / 8);
+		off += nlen;
+
+		for (int i=0; i<vn+fn; i++) {
+			int c = RecordTool::byte2Int(page+off, 1);
+			off++;
+			ans.push_back(c);
+		}
+		return ans;
+}
+
 //写入表元信息，供SysManager在创建表时使用
-void DataManager::writeTableInfo(string tableName, TableInfo tb) {
+void DataManager::writeTableInfo(string tableName, TableInfo tb, int* posInfo) {
 	string filepath;
 	filepath = "DataBase/" + currentBase + "/" + tableName + ".data";
 	int fileID = 0;
@@ -622,6 +657,7 @@ void DataManager::writeTableInfo(string tableName, TableInfo tb) {
 	//计算表元信息大小
 	int metaSize = 0;
 	metaSize = 4 + 24*tb.FN + 24*tb.VN + 4*tb.FN + 4*tb.VN + 2*(tb.FN+tb.VN) + ceil(double(tb.FN+tb.VN)/8);
+	metaSize = metaSize + tb.FN+tb.VN;
 
 	Byte metaData[metaSize];
 	for (int i=0; i<metaSize; i++) {
@@ -698,6 +734,14 @@ void DataManager::writeTableInfo(string tableName, TableInfo tb) {
 
 		off++;
 	}
+
+	//设置pos信息
+	for (int i=0; i<tb.FN+tb.VN; i++) {
+		RecordTool::int2Byte(metaData+off, 1, posInfo[i]);
+		metaData[off] = posInfo[i];
+		off++;
+	}
+
 	//cout << "metaSize: " << metaSize << endl;
 	//cout << "off: " << off << endl;
 	assert(off == metaSize);

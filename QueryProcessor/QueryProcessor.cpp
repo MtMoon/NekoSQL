@@ -297,6 +297,7 @@ bool QueryProcessor::UpdateRecord(const string& tableName, const string& fieldNa
 			dataPairs[j].second = data;
 		}
 		
+/*
 		cout << "<" << updatePos[i].first << "," << updatePos[i].second << ">" << endl;
 		cout << "Cnt:" << fieldCnt << endl;	
 
@@ -313,7 +314,7 @@ bool QueryProcessor::UpdateRecord(const string& tableName, const string& fieldNa
 				cout << dataPairs[j].second.first[k];
 			cout << endl;
 		}
-		
+*/		
 		dataManager->deleteRecord(tableName.c_str(), updatePos[i]);
 		int len = 0;
 		Byte* tempRecord = NULL;
@@ -336,8 +337,31 @@ bool QueryProcessor::UpdateRecord(const string& tableName, const string& fieldNa
 
 bool QueryProcessor::InsertRecord(const string& tableName, const vector<string>& fieldNames, const vector<string>& values, const vector<bool>& isNulls)
 {
+/*
 	int flag;
 	vector<FieldInfo> fieldInfoList = sysManager->descTable(string(tableName), flag);
+*/
+
+	int flag;
+	vector<FieldInfo> realField = sysManager->descTable(string(tableName), flag);
+	vector<int> matchInfo = sysManager->getPosInfo(string(tableName));	
+	vector<FieldInfo> fieldInfoList;
+	assert(matchInfo.size() == realField.size());
+	for (int i = 0; i < matchInfo.size(); i++)
+		fieldInfoList.push_back(realField[matchInfo[i]]);
+
+/*
+	cout << "RealField:" << endl;
+	for (int i = 0; i < realField.size(); i++)
+		cout << realField[i].fieldName << "#";
+	cout << endl << "MatchInfo:" << endl;
+	for (int i = 0; i < matchInfo.size(); i++)
+		cout << matchInfo[i] << "#";
+	cout << endl << "FieldInfoList:" << endl;
+	for (int i = 0; i < fieldInfoList.size(); i++)
+		cout << fieldInfoList[i].fieldName << "#";
+	cout << endl;
+*/
 	if (flag == -1)
 	{
 		errHandler->ErrorHandle("INSERT", "database", "No Database selected.");
@@ -382,6 +406,7 @@ bool QueryProcessor::InsertRecord(const string& tableName, const vector<string>&
 		}
 	}
 	DP* dataPairs = new DP[fieldCnt];
+	DP* newDataPairs = new DP[fieldCnt];
 	for (int i = 0; i < fieldCnt; i++)
 	{
 		int index = -1;
@@ -415,31 +440,40 @@ bool QueryProcessor::InsertRecord(const string& tableName, const vector<string>&
 				return false;
 		}
 		dataPairs[i].first = fieldInfoList[i].fieldName;
+		//cout << i << ":" << dataPairs[i].first << "#" << fieldInfoList[i].fieldName << endl;
 		dataPairs[i].second = data;
 	}
 	
-	/*
+	for (int i = 0; i < realField.size(); i++)
+	{
+		for (int j = 0; j < fieldCnt; j++)
+			if (dataPairs[j].first == realField[i].fieldName)
+				newDataPairs[i] = dataPairs[j];
+	}
+/*
 	cout << "Cnt:" << fieldCnt << endl;	
 	for (int i = 0; i < fieldCnt; i++)
 	{
-		cout << dataPairs[i].first << " " << dataPairs[i].second.second << " ";
-		if (dataPairs[i].second.first == NULL)
+		cout << newDataPairs[i].first << " " << newDataPairs[i].second.second << " ";
+		if (newDataPairs[i].second.first == NULL)
 			cout << "NULL";
 		else
 			cout << "NOT NULL";
 		cout << ":";
-		for (int j = 0; j < dataPairs[i].second.second; j++)
-			cout << dataPairs[i].second.first[j];
+		for (int j = 0; j < newDataPairs[i].second.second; j++)
+			cout << newDataPairs[i].second.first[j];
 		cout << endl;
 	}
-	*/
-	
+*/
+	//cout << "start of insertion" << endl;
+
 	LP tempLP;
-	if (!(dataManager->insertRecord(tableName.c_str(), dataPairs, fieldCnt, tempLP)))
+	if (!(dataManager->insertRecord(tableName.c_str(), newDataPairs, fieldCnt, tempLP)))
 	{
 		errHandler->ErrorHandle("INSERT", "operational", "Insertion failed.");
 		return false;
 	}
+	//cout << "end of insertion" << endl;
 	return true;
 }
 
@@ -756,9 +790,16 @@ Relation QueryProcessor::MultiLink(vector<Relation*> relations)
 	int relCnt = relations.size();
 	for (int i = 0; i < relCnt; i++)
 	{
+		assert((relations[i]->first).size() > 0);
 		int attrCnt = (relations[i]->first).size();
 		for (int j = 0; j < attrCnt; j++)
 			result.first.push_back(relations[i]->first[j]);
+	}
+
+	for (int i = 0; i < relCnt; i++)
+	{
+		if ((relations[i]->second).size() == 0)
+			return result;
 	}
 	/*
 	cout << "Result attr:" << endl;
@@ -829,11 +870,11 @@ Relation QueryProcessor::ExtendRelation(const Relation& relation, const vector<s
 			}
 			tempRelVec.push_back(tempRel);
 		}
-		/*
+	/*	
 		cout << "tempRelVec:" << endl;
 		for (int i = 0; i < tempRelVec.size(); i++)
 			PrintRelation(*(tempRelVec[i]));
-		*/
+	*/	
 		newRel = MultiLink(tempRelVec);
 		for (int i = 1; i < tempRelVec.size(); i++)
 			delete tempRelVec[i];
@@ -1054,11 +1095,13 @@ void QueryProcessor::PrintViewTable(const ViewTable& viewTable)
 {
 	cout << "ViewTable:" << endl;
 	int fieldCnt = viewTable.first.size();
+	cout << "No." << "\t";
 	for (int i = 0; i < fieldCnt; i++)
 		cout << viewTable.first[i] << "\t";
 	cout << endl;
 	for (int i = 0; i < viewTable.second.size(); i++)
 	{
+		cout << i+1 << "\t";
 		for (int j = 0; j < fieldCnt; j++)
 			cout << viewTable.second[i][j] << "\t";
 		cout << endl;

@@ -55,6 +55,7 @@ public:
 	bool upDateRecord(ConDP oldKey, ConDP newKey, LP oldPos, LP newPos);
 
 
+
 	 //获取某个表某个字段的indexinfo, flag为false表示索引不存在
 	IndexInfo getIndexInfo(string tableName, string fieldName, bool& flag);
 	IndexInfo getIndexInfo2(string tableName, string indexName, bool& flag);

@@ -25,6 +25,7 @@ IndexManager::IndexManager(DataManager* datamanager) {
 	_order = 50;
 	lower_bound = ceil(double(_order) / 2) -1;
 	upper_bound = _order-1;
+
 }
 
 IndexManager::~IndexManager() {
@@ -39,6 +40,7 @@ IndexManager::~IndexManager() {
 //返回1为创建成功，0为索引已存在，-1为尚未选中任何database， -2 database不存在
 //-4该表的该字段上已经建过索引
 int IndexManager::createIndex( IndexInfo indexInfo) {
+	cout << "lalala0" << endl;
 	if (currentDB == "") {
 		return -1;
 	}
@@ -59,7 +61,6 @@ int IndexManager::createIndex( IndexInfo indexInfo) {
 	if (indexMap.find(indexInfo.tableName+"_"+indexInfo.fieldName) != indexMap.end()) {
 		return -4;
 	}
-
 
 
 	int fileID;
@@ -118,6 +119,8 @@ int IndexManager::createIndex( IndexInfo indexInfo) {
 
 	ifm->closeFile(fileID);
 	ibm->close();
+	currentTable = indexInfo.tableName;
+	currentIndex = indexInfo.indexName;
 	addIndexInfo(indexInfo);
 
 	//cout << "createIndex " << currentTable << " " << currentIndex <<  endl;
@@ -162,6 +165,8 @@ int IndexManager::dropIndex(string tableName, string indexName) {
 /*-----------------------------------------------------------------------------------------------------*/
 //供查询解析模块调用的功能函数
 
+
+
 //获取某个表某个字段的indexinfo, flag为false表示索引不存在
 IndexInfo IndexManager::getIndexInfo(string tableName, string fieldName, bool& flag) {
 	if (indexMap.find(tableName+"_"+fieldName) != indexMap.end()) {
@@ -179,6 +184,8 @@ IndexInfo IndexManager::getIndexInfo(string tableName, string fieldName, bool& f
 IndexInfo IndexManager::getIndexInfo2(string tableName, string indexName, bool& flag) {
 	flag = false;
 	for (map<string, IndexInfo>::iterator it = indexMap.begin(); it != indexMap.end(); ++it) {
+		cout << it->second.tableName << " " << it->second.indexName << endl;
+		cout << "create: " << tableName << " " << indexName << endl;
 		if (it->second.tableName == tableName && it->second.indexName == indexName) {
 			flag = true;
 			return it->second;
@@ -201,7 +208,7 @@ void IndexManager::setIndex(string tableName, string indexName) {
 	//openIndex(tableName, indexName);
 	currentTable = tableName;
 	currentIndex = indexName;
-	currentIndexInfo = getCurrentIndexInfo();
+	//currentIndexInfo = getCurrentIndexInfo();
 }
 
 //查找key值满足特定条件的记录的位置
@@ -295,6 +302,7 @@ int IndexManager::deleteRecord(ConDP key, LP pos) {
 int IndexManager::reBuildData(IndexInfo indexinfo) {
 
 	cout << "enter rebuildData" << endl;
+	cout << "current: " << currentTable << " " << currentIndex << endl;
 	if (indexinfo.indexType == 2) {
 		return -2;
 	}
@@ -412,6 +420,7 @@ int IndexManager::reWriteIndexSys() {
 
 //向索引文件表中加入追加写入索引信息
 int IndexManager::addIndexInfo(IndexInfo indexinfo) {
+	cout << "addIndexInfo" << endl;
 	string filePath = "DataBase/" + currentDB + "/Index.sys";
 	if (is_file_exist(filePath.c_str()) != 0) {
 		bool success = ifm->createFile(filePath.c_str());

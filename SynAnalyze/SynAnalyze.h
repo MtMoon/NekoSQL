@@ -4,14 +4,10 @@
 #include "../ErrorHandler/ErrorHandler.h"
 #include "../sysmanager/SysManager.h"
 #include "../QueryProcessor/QueryProcessor.h"
+#include "../indexmanager/IndexManager.h"
 #include <string>
 #include <vector>
 #include <utility>
-#include <iostream>
-#include <ctype.h>
-#include <cstring>
-#include <sstream>
-
 
 struct WordInfo
 {
@@ -27,10 +23,11 @@ struct WordInfo
 class SynAnalyze
 {
 public:
-	SynAnalyze(SysManager* smm, QueryProcessor* qpp, ErrorHandler* errorh);
+	SynAnalyze(SysManager* smm, QueryProcessor* qpp, ErrorHandler* errorh,  IndexManager* imm);
 	~SynAnalyze();
 //private:
 	SysManager* sm;
+	IndexManager* im;
 	QueryProcessor* qp;
 	ErrorHandler* errh;
 
@@ -52,7 +49,7 @@ public:
 	bool DeleteAnalyze(const std::string& cstr);
 	bool UpdateAnalyze(const std::string& cstr);
 	bool SelectAnalyze(const std::string& cstr, ViewTable& viewTable);
-	bool CmdAnalyze(const std::string& cstr, ViewTable& viewTable);
+	bool CmdAnalyze(const std::string& cstr, ViewTable& viewTable, bool& hasView, std::string& sysStr, bool& hasStr);
 	//std::vector<std::string> SplitStrWithLimit(const std::string& str, char c, const std::vector<char>& leftChar, const std::vector<char>& rightChar);
 };
 

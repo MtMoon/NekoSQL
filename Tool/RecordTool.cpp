@@ -322,7 +322,8 @@ ConDP RecordTool::getFieldValueInRecord(TableInfo& tb, Data record, string field
 		char str[len+1];
 		byte2Str(str, data, len);
 		str[len] = '\0';
-		ans.value_str = string(data2Str(Data(data, len)));
+		//printf("lalala %s , len is %d\n", str, len);
+		ans.value_str = string(str);
 	}
 	return ans;
 }

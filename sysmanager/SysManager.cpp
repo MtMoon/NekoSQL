@@ -255,7 +255,7 @@ vector<FieldInfo> SysManager::descTable(string tableName, int& flag) {
 		fi.fieldType = tb.types[i];
 		fi.fieldSize = tb.Flen[i];
 		fi.ifNull = (tb.nullMap[i/8] >> (i%8))&1;
-		cout << "null f: " << (int)((tb.nullMap[i/8] >> (i%8))&1) << endl;;
+		//cout << "null f: " << (int)((tb.nullMap[i/8] >> (i%8))&1) << endl;;
 		fi.key = tb.keys[i];
 		ans.push_back(fi);
 	}
@@ -328,6 +328,8 @@ int SysManager::createTable(string tableName, vector<FieldInfo> tbvec) {
 		tb.nullMap[i] &= 0x00;
 	}
 
+	int posInfo[tb.FN+tb.VN];
+
 	for (int i=0; i<tbvec.size(); i++) {
 			if (tbvec[i].fieldType == 2) { //变长varchar
 				tb.Vname[vc] = tbvec[i].fieldName;
@@ -337,6 +339,7 @@ int SysManager::createTable(string tableName, vector<FieldInfo> tbvec) {
 				tb.keys[tb.FN+vc] = tbvec[i].key;
 
 				int which = tb.FN + vc;
+				posInfo[i] = which;
 				int ifnull = 0;
 				//cout << tbvec[i].ifNull << endl;
 				if (tbvec[i].ifNull) {
@@ -358,15 +361,24 @@ int SysManager::createTable(string tableName, vector<FieldInfo> tbvec) {
 					ifnull = 1;
 				}
 				tb.nullMap[which/8] |= (ifnull<<(which%8));
+				posInfo[i] = fc;
 				fc++;
 			}
 	}
 	//cout << "nullmap: " << int(tb.nullMap[0]) << endl;
 
-	dataManager->writeTableInfo(tableName, tb);
+	dataManager->writeTableInfo(tableName, tb, posInfo);
 	return 1;
 
 
+}
+
+TableInfo  SysManager::getTableInfo(string tableName) {
+	return dataManager->getTableInfo(tableName.c_str());
+}
+
+vector<int> SysManager::getPosInfo(string tableName) {
+	return dataManager->loadPosInfo(tableName.c_str());
 }
 
 

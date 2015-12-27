@@ -83,6 +83,10 @@ public:
 	 */
 	int createTable(string tableName, vector<FieldInfo> tb);
 
+	vector<int> getPosInfo(string tableName);
+	//数据文件操作
+	TableInfo getTableInfo(string tableName);
+
 
 
 private:

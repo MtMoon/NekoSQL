@@ -67,7 +67,7 @@ public:
 	TableInfo getTableInfo(const char* tablename);
 
 	//写入表元信息，供SysManager在创建表时使用
-	void writeTableInfo(string tableName, TableInfo tb);
+	void writeTableInfo(string tableName, TableInfo tb, int* posInfo);
 
 	//更上层的接口函数
 	void setDatabase(string dirname); 	//切换数据库目录
@@ -76,6 +76,7 @@ public:
 	vector<LP> getAllLPInTable(const char* tablename); //获取一个表里所有有效数据的LP
 	vector<KP> getAllKPInTable(const char* tablename, string fieldName); //获取一个表里的所有key pair，用于索引模块
 	Data getRecordByLP(const char* tablename, LP pos); //根据位置和表名获取一条数据
+	vector<int> loadPosInfo(const char* tablename);
 
 
 //private:

@@ -1,21 +1,25 @@
 #include "SynAnalyze.h"
-
-
+#include <string>
+#include <vector>
+#include <iostream>
+#include <ctype.h>
+#include <cstring>
+#include <utility>
 
 using namespace std;
 
-SynAnalyze::SynAnalyze(SysManager* smm, QueryProcessor* qpp, ErrorHandler* errorh) {
+SynAnalyze::SynAnalyze(SysManager* smm, QueryProcessor* qpp, ErrorHandler* errorh, IndexManager* imm)
+{
 	assert(smm != NULL);
 	assert(qpp != NULL);
 	assert(errorh != NULL);
 	sm = smm;
+	im = imm;
 	qp = qpp;
 	errh = errorh;
 }
 
-SynAnalyze::~SynAnalyze() {
-
-}
+SynAnalyze::~SynAnalyze() {}
 
 
 char* strlwr(char *str)
@@ -235,7 +239,7 @@ vector<string> StripVector(const vector<string>& strVec)
 {
 	vector<string> result;
 	for (int i = 0; i < strVec.size(); i++)
-		result.push_back(strVec[i]);
+		result.push_back(StripStr(strVec[i]));
 	return result;
 }
 
@@ -308,6 +312,62 @@ bool FindWordAndSplit(const string& cstr, const string& target, vector<string>& 
 	return true;
 }
 
+bool FindWordAndSplitWithLimit(const string& cstr, const string& target, vector<string>& strVec)
+{
+	strVec.clear();
+	string str(cstr+" ");
+	int start = 0;
+	bool inWord = false, inLock = false, inChange = false;
+	int leftEnd = -1, rightStart = -1;
+	for (int i = 0; i < str.length(); i++)
+	{
+		if (IsBlank(str[i]) && !inLock)
+		{
+			if (inWord)
+			{
+				inWord = false;
+				string tempStr = ToLowerCase(str.substr(start, i-start));
+				if (tempStr == target)
+				{
+					leftEnd = start;
+					rightStart = i;
+					break;
+				}
+			}
+		}
+		else
+		{
+			if (!inWord)
+			{
+				inWord = true;
+				start = i;
+			}
+			if (!inLock)
+			{
+				if (str[i] == '\'')
+					inLock = true;
+			}
+			else
+			{
+				if (inChange)
+					inChange = false;
+				else
+				{
+					if (str[i] == '\\')
+						inChange = true;
+					else if (str[i] == '\'')
+						inLock = false;
+				}
+			}
+		}
+	}
+	if (leftEnd == -1 && rightStart == -1)
+		return false;
+	strVec.push_back(cstr.substr(0, leftEnd));
+	strVec.push_back(cstr.substr(rightStart, cstr.length()-rightStart));
+	return true;
+}
+
 bool IsInt(const string& value)
 {
 	int len = value.length();
@@ -351,12 +411,12 @@ bool IsStr(const string& str)
 	return str[0] == '\"' && str[str.length()-1] == '\"' || str[0] == '\'' && str[str.length()-1] == '\'';
 }
 
-
 string WordToStr(const string& str)
 {
 	assert(IsStr(str));
 	return str.substr(1, str.length()-2);
 }
+
 
 //for SysManager
 //若是SysManager对应的命令，则返回结果string，且置flag:
@@ -398,7 +458,7 @@ string SynAnalyze::SysAnalyze(const std::string& cstr, int & flag) {
 			}
 		}
 	}
-	//cout << "#" << word[0] << "#" << word[1] << "#" << remainStr << endl;
+	cout << "#" << word[0] << "#" << word[1] << "#" << remainStr << endl;
 	if (word[0] == "create" && word[1] == "table") { //单独处理建表
 		flag = -1;
 		int ans = createTBAnalyze(remainStr);
@@ -419,9 +479,9 @@ string SynAnalyze::SysAnalyze(const std::string& cstr, int & flag) {
 
 	if  (word[0] == "create" && word[1] == "database") { //建数据库
 		flag = -1;
-		int ans = sm->createDatabase(GetWord(remainStr));
+		int ans = sm->createDatabase( ToLowerCase(GetWord(remainStr)));
 		if (ans == 0) {
-			cout << "database " <<   GetWord(remainStr) << " already exists! " << endl;
+			cout << "database " <<    ToLowerCase(GetWord(remainStr)) << " already exists! " << endl;
 			return "";
 		} else if (ans == -1) {
 			cout << "unknown error in function createDatabase() " << endl;
@@ -434,9 +494,9 @@ string SynAnalyze::SysAnalyze(const std::string& cstr, int & flag) {
 	//删除数据库
 	if (word[0] == "drop" && word[1] == "database") {
 		flag = -1;
-		int ans = sm->dropDatabase(GetWord(remainStr));
+		int ans = sm->dropDatabase( ToLowerCase(GetWord(remainStr)));
 		if (ans == 0) {
-			cout << "database " <<   GetWord(remainStr) << " not exists! " << endl;
+			cout << "database " <<   ToLowerCase(GetWord(remainStr)) << " not exists! " << endl;
 			return "";
 		} else if (ans == -1) {
 			cout << "unknown error in function dropDatabase() " << endl;
@@ -446,12 +506,157 @@ string SynAnalyze::SysAnalyze(const std::string& cstr, int & flag) {
 		return "";
 	}
 
+	//删除索引
+	if (word[0] == "drop" && word[1] == "index") {
+		flag = -1;
+		vector<string> ans = SplitStr(remainStr, ' ');
+		vector<string> symbol;
+		for (int i=0; i<ans.size(); i++) {
+			if (ans[i] == "" || ans[i] == " ") {
+				continue;
+			}
+			symbol.push_back( ToLowerCase(GetWord(ans[i])));
+		}
+
+		if (symbol.size() != 2) {
+			cout << "rong index operation statement! " << endl;
+			return "";
+		}
+		int ansFlag = im->dropIndex(symbol[0], symbol[1]);
+		if (ansFlag == 0) {
+			cout << "index " << symbol[1] << " not exists!" << endl;
+			return "";
+		} else if (ansFlag == -1) {
+			cout << "no selected database! " << endl;
+			return "";
+		} else if (ansFlag == -2) {
+			cout << "database not exists!" << endl;
+			return "";
+		}
+
+		flag = 1;
+		return "";
+	}
+
+	//创建索引
+	if (word[0] == "create" && (word[1] == "unique" || word[1] == "nonunique")) {
+		flag = -1;
+		vector<string> ans = SplitStr(remainStr, ' ');
+		vector<string> symbol;
+		for (int i=0; i<ans.size(); i++) {
+			if (ans[i] == "" || ans[i] == " ") {
+				continue;
+			}
+			symbol.push_back( ToLowerCase(GetWord(ans[i])));
+		}
+
+		if (symbol.size() != 4) {
+			cout << "rong index operation statement in creating index! " << endl;
+			return "";
+		}
+
+		string indexName = symbol[1];
+		//获取表名和列名
+		int start = symbol[3].find("(");
+
+		string fieldName = symbol[3].substr(start+1, symbol[3].length()-start-2);
+		string tableName = symbol[3].substr(0,start);
+
+		//cout << "tableName:#" << tableName << "# indexName:#" << indexName << "# fieldName:#" << fieldName << "#" << endl;
+		IndexInfo indexinfo;
+		indexinfo.indexName = indexName;
+		indexinfo.tableName = tableName;
+		indexinfo.fieldName = fieldName;
+		if (word[1] == "unique") {
+			indexinfo.indexType = 0;
+		} else {
+			indexinfo.indexType = 1;
+		}
+		indexinfo.ifNull = 0;
+		TableInfo tb = sm->getTableInfo(tableName);
+
+		//找到是第几个字段
+		int which = -1;
+		for (int i=0; i<tb.FN; i++) {
+			if (fieldName == tb.Fname[i]) {
+				which = i;
+				break;
+			}
+		}
+
+		if (which == -1) {
+			for (int i=0; i<tb.VN; i++) {
+				if (tb.Vname[i] == fieldName) {
+					which = tb.FN + i;
+					break;
+				}
+			}
+		}
+
+		if (which == -1) {
+			cout << "Fitled " << fieldName << " not int table " << tableName << endl;
+			flag = -1;
+			return "";
+		}
+
+		int whichByte = which/8;
+		int whichBit = which%8;
+
+		if (((tb.nullMap[whichByte]>>whichBit) & 1) == 1) {
+			cout << "index fitled can't be null!"  << endl;
+			flag = -1;
+			return "";
+		}
+
+
+		if (RecordTool::isVCol(tb, fieldName)) {
+			indexinfo.ifFixed = 0;
+			indexinfo.fieldLen = 0;
+			indexinfo.fieldType = 1;
+		} else { //定长
+			indexinfo.ifFixed = 1;
+			indexinfo.fieldType = 0;
+			indexinfo.fieldLen = 4;
+		}
+		indexinfo.legal = true;
+		cout << "lalala2" << endl;
+		//im->setIndex(tableName, indexName);
+		cout << "lalala3" << endl;
+		int ansFlag = im->createIndex(indexinfo);
+		if (ansFlag == 0) {
+			cout << "index " << indexName << " already exists!" << endl;
+			return "";
+		} else if (ansFlag == -1) {
+			cout << "no selected database! " << endl;
+			return "";
+		} else if (ansFlag == -2) {
+			cout << "database not exists!" << endl;
+			return "";
+		} else if (ansFlag == -4) {
+			cout << "There has been an index in field " << fieldName << " of table " << tableName << endl;
+			return "";
+		} else if (ansFlag == -3) {
+			cout << "Unknown error in IndexManager!" << endl;
+			return "";
+		}
+
+		flag = 1;
+		return "";
+
+	}
+
+
+
+
+
 	//user database
 	if (word[0] == "use") {
 		flag = -1;
-		int ans = sm->useDatabase(GetWord(remainStr));
+		string para = ToLowerCase(GetWord(word[1]));
+		int ans = sm->useDatabase(para);
+		im->setDataBase(para);
 		if (ans == 0) {
-			cout << "database " <<   GetWord(remainStr) << " not exists! " << endl;
+			cout << "database " <<  para << " not exists! " << endl;
 			return "";
 		} else if (ans == -1) {
 			cout << "unknown error in function useDatabase() " << endl;
@@ -464,9 +669,10 @@ string SynAnalyze::SysAnalyze(const std::string& cstr, int & flag) {
 	//删除表
 	if (word[0] == "drop" && word[1] == "table") {
 		flag = -1;
-		int ans = sm->dropTable(GetWord(remainStr));
+		string para = ToLowerCase(GetWord(remainStr));
+		int ans = sm->dropTable(para);
 		if (ans == 0) {
-			cout << "table " <<   GetWord(remainStr) << " not exists! " << endl;
+			cout << "table " <<   para << " not exists! " << endl;
 			return "";
 		} else if (ans == -1) {
 			cout << "no selected database! " << endl;
@@ -518,6 +724,14 @@ string SynAnalyze::SysAnalyze(const std::string& cstr, int & flag) {
 
 	//显示某个表的所有信息
 	if (word[0] == "desc") {
+
+		//显示pos信息
+		vector<int> posInfo = sm->getPosInfo(word[1]);
+		cout << "pos info: " << endl;
+		for (int i=0; i<posInfo.size(); i++) {
+			cout << posInfo[i] << endl;
+		}
+
 		flag = -1;
 		int ansflag = 0;
 		vector<FieldInfo> ans = sm->descTable(word[1], ansflag);
@@ -642,8 +856,9 @@ string SynAnalyze::SysAnalyze(const std::string& cstr, int & flag) {
 
 
 	}
-
-	cout << "command not found." << endl;
+	if (flag != 0) {
+		cout << "command not found." << endl;
+	}
 	return "";
 }
 
@@ -651,16 +866,23 @@ string SynAnalyze::SysAnalyze(const std::string& cstr, int & flag) {
 //return -2 该函数内错误错误 1 成功 0 表已存在 -1 未选中database
 int SynAnalyze::createTBAnalyze(const std::string& cstr) {
 	string str = cstr.substr(0,cstr.length()-2);
+	//cout << "remain str: " << str << endl;
 	int start = str.find("(");
 	string name = str.substr(0, start);
 	string tableName = GetWord(name);
-	cout << "tableName:#" << tableName << "#" << endl;
-	str = str.substr(start+1, str.length());
+	//cout << "tableName:#" << tableName << "#" << endl;
+	str = str.substr(start+1, str.length()-start-1);
+	//cout << str << endl;
+
 	vector<string> states = SplitStr(str,',');
 	vector<FieldInfo> tbInfo;
 
-	for (unsigned i=0; i<states.size(); i++) {
-		cout << "#" << states[i] << "#" << endl;
+	int stateSize = states.size() ;
+	//cout << stateSize << endl;
+
+
+	for (int i=0; i<stateSize; i++) {
+		//cout << "#" << states[i] << "#" << endl;
 		//对每一句
 		vector<string> eachStr = SplitStr(states[i],' ');
 		vector<string> symbol;
@@ -673,19 +895,25 @@ int SynAnalyze::createTBAnalyze(const std::string& cstr) {
 
 		start = symbol[1].find("(");
 		int end = symbol[1].find(")");
+		//cout << "start:" << start << " end: " << end << endl;
 		string sizeStr = ToLowerCase(symbol[1].substr(start+1,end-start-1));
 		string typeStr = ToLowerCase(symbol[1].substr(0,start));
 		cout << "type:" << typeStr << "#  size:" << sizeStr << "#" << endl;
 
 		if (typeStr == "key") {
-
+			int templen = symbol[2].length();
+			string need = symbol[2].substr(1, templen-2);
+			//cout << "need; " << need << endl;
 			for (unsigned j=0; j<tbInfo.size(); j++) {
-				if (tbInfo[j].fieldName == sizeStr) {
+				if (tbInfo[j].fieldName == need) {
+					if (tbInfo[j].ifNull) {
+						cout << "The primary key can't be null!" << endl;
+						return -2;
+					}
 					tbInfo[j].key = 2;
 					break;
 				}
 			}
-			break;
 
 		} else {
 			FieldInfo info;
@@ -700,14 +928,17 @@ int SynAnalyze::createTBAnalyze(const std::string& cstr) {
 				cout << "Type Error, " << typeStr << " is not a legal type! " << endl;
 				return -2;
 			}
+
 			//key
 			info.key = 0;
 			//if null
-			if (symbol.size() > 2 || ToLowerCase(symbol[2]) == "not") {
-				info.ifNull = true;
-			} else {
+			//cout << "lalala0" << endl;
+			if (symbol.size() > 2 && ToLowerCase(symbol[2]) == "not") {
 				info.ifNull = false;
+			} else {
+				info.ifNull = true;
 			}
+			//cout << "lalala1" << endl;
 			// size
 			stringstream ss;
 			ss.clear();
@@ -716,14 +947,9 @@ int SynAnalyze::createTBAnalyze(const std::string& cstr) {
 			ss >> size;
 			info.fieldSize = size;
 			tbInfo.push_back(info);
+			//cout << "lalala" << endl;
 		}
-
-
-
-
 	}
-	//cout << "lalala0" << endl;
-	//cout << "lalala" << endl;
 	//建表
 	return sm->createTable(tableName, tbInfo);
 
@@ -763,8 +989,9 @@ bool SynAnalyze::FromAnalyze(const string& str, vector<TableAlias>& tableAliasLi
 	vector<string> strVec = SplitStr(str, ',');
 	for (int i = 0; i < strVec.size(); i++)
 	{
+		//cout << i << ":" << strVec[i] << endl;
 		string temp = StripStr(strVec[i]);
-		vector<string> tempVec = SplitStrNonEmpty(str, ' ');
+		vector<string> tempVec = SplitStrNonEmpty(temp, ' ');
 		if (tempVec.size() == 0)
 		{
 			errh->ErrorHandle("FROM", "sematic", "empty table name");
@@ -824,7 +1051,11 @@ bool SynAnalyze::FromAnalyze(const string& str, vector<TableAlias>& tableAliasLi
 			return false;
 		}
 	}
-	
+	/*
+	cout << "Naming:" << endl;
+	for (int i = 0; i < tableAliasList.size(); i++)
+		cout << tableAliasList[i].first << ":" << tableAliasList[i].second << endl;
+	*/
 	//check naming conflict
 	int size = tableAliasList.size();
 	for (int i = 0; i < size; i++)
@@ -838,7 +1069,7 @@ bool SynAnalyze::FromAnalyze(const string& str, vector<TableAlias>& tableAliasLi
 	for (int i = 0; i < size; i++)
 		if (tableAliasList[i].first == tableAliasList[i].second)
 			for (int j = 0; j < size; j++)
-				if (tableAliasList[j].first == tableAliasList[j].second && tableAliasList[i].first == tableAliasList[j].first)
+				if (i != j && tableAliasList[j].first == tableAliasList[j].second && tableAliasList[i].first == tableAliasList[j].first)
 				{
 					errh->ErrorHandle("FROM", "sematic", "table:"+tableAliasList[i].first+" needs renaming");
 					return false;
@@ -846,7 +1077,7 @@ bool SynAnalyze::FromAnalyze(const string& str, vector<TableAlias>& tableAliasLi
 	for (int i = 0; i < size; i++)
 		if (tableAliasList[i].second != tableAliasList[i].first)
 			for (int j = 0; j < size; j++)
-				if (tableAliasList[j].second != tableAliasList[j].first && tableAliasList[i].second == tableAliasList[j].second)
+				if (i != j && tableAliasList[j].second != tableAliasList[j].first && tableAliasList[i].second == tableAliasList[j].second)
 				{
 					errh->ErrorHandle("FROM", "sematic", "table alias:"+tableAliasList[i].second+" have confliction");
 					return false;
@@ -1636,25 +1867,38 @@ bool SynAnalyze::InsertAnalyze(const string& cstr)
 			errh->ErrorHandle("INSERT", "syntax", "parentheses should surround value:"+valStr);
 			return false;
 		}
-		vector<string> fieldValList = SplitStrWithLimit(valList[i], ',', leftChar, rightChar);
+		valStr = valStr.substr(1, valStr.length()-2);
+		//cout << valStr << endl;
+		vector<string> fieldValList = SplitStrWithLimit(valStr, ',', leftChar, rightChar);
 		fieldValList = StripVector(fieldValList);
 		vector<bool> isNull;
 		vector<string> fieldList;
 		for (int j = 0; j < fieldValList.size(); j++)
 		{
+			//cout << fieldValList[j] << endl;
+			if (fieldValList[j].length() == 0)
+			{
+				errh->ErrorHandle("INSERT", "syntax", "empty field value exists:"+valStr);
+				return false;
+			}
 			if (ToLowerCase(fieldValList[j]) == "null")
 			{
 				isNull.push_back(true);
-				fieldValList[i] = "";
+				fieldValList[j] = "";
 			}
 			else
 			{
 				isNull.push_back(false);
-				if (IsStr(fieldValList[i]))
-					fieldValList[i] = WordToStr(fieldValList[i]);
-
+				if (IsStr(fieldValList[j]))
+					fieldValList[j] = WordToStr(fieldValList[j]);
+				else if (!IsInt(fieldValList[j]))
+				{
+					errh->ErrorHandle("INSERT", "syntax", "invalid field value:"+fieldValList[j]);
+					return false;	
+				}
 			}
 		}
+		/*
 		cout << "No." << i << ":" << endl;
 		cout << "TableName:" << tableName << endl;
 		for (int j = 0; j < fieldValList.size(); j++)
@@ -1668,17 +1912,17 @@ bool SynAnalyze::InsertAnalyze(const string& cstr)
 				cout << "not" << " ";
 		}
 		cout << endl;
-		/*
-		if (!(qp->InsertRecord(tableName, fieldList, fieldValList, isNull)))
-			return false;
 		*/
+		if(!(qp->InsertRecord(tableName, fieldList, fieldValList, isNull)))
+			return false;
+
 	}
 	return true;
 }
 
 bool SynAnalyze::DeleteAnalyze(const string& cstr)
 {
-/*
+
 	if (StripStr(cstr).length() == 0)
 	{
 		errh->ErrorHandle("DELETE", "syntax", "empty command content.");
@@ -1689,7 +1933,7 @@ bool SynAnalyze::DeleteAnalyze(const string& cstr)
 	string tempStr = GetWord(str);
 	if (ToLowerCase(tempStr) != "from")
 	{
-		errh->ErrorHandle("DELETE", "syntax", "keyword\"from\" not found.");
+		errh->ErrorHandle("DELETE", "syntax", "keyword\"from\" not found or not in right place.");
 		return false;
 	}
 	vector<string> strVec;
@@ -1703,10 +1947,13 @@ bool SynAnalyze::DeleteAnalyze(const string& cstr)
 		tableStr = StripStr(strVec[0]);
 		whereStr = StripStr(strVec[1]);
 	}
-	TableAliasList tableAliasList;
-	if (!OneTableAnalyze(tableStr, tableAliasList))
+	vector<TableAlias> tableAliasList;
+	if (!OneTableAnalyze(tableStr, tableAliasList, "DELETE"))
 		return false;
 	string tableName = tableAliasList[0].first;
+	//cout << "tableName:" << tableName << endl;
+	//cout << "whereStr:" << whereStr << endl;
+	
 	if (whereStr == "")
 	{
 		if (!(qp->DeleteAllRecord(tableName)))
@@ -1720,13 +1967,13 @@ bool SynAnalyze::DeleteAnalyze(const string& cstr)
 		if (!(qp->DeleteRecord(tableName, relation)))
 			return false;
 	}
-*/
+	
 	return true;
 }
 
 bool SynAnalyze::UpdateAnalyze(const string& cstr)
 {
-/*
+
 	if (StripStr(cstr).length() == 0)
 	{
 		errh->ErrorHandle("UPDATE", "syntax", "empty command content.");
@@ -1743,7 +1990,7 @@ bool SynAnalyze::UpdateAnalyze(const string& cstr)
 	string tableStr = StripStr(strVec[0]);
 	string remainStr = StripStr(strVec[1]);
 	string setStr, whereStr;
-	if (!FindWordAndSplit(remainStr, "where", strVec))
+	if (!FindWordAndSplitWithLimit(remainStr, "where", strVec))
 	{
 		whereStr = "";
 		setStr = remainStr;
@@ -1754,28 +2001,31 @@ bool SynAnalyze::UpdateAnalyze(const string& cstr)
 		whereStr = StripStr(strVec[1]);
 	}
 
-	TableAlias tableAlias;
-	if (!OneTableAnalyze(tableStr, tableAlias))
+	vector<TableAlias> tableAliasList;
+	if (!OneTableAnalyze(tableStr, tableAliasList, "UPDATE"))
 		return false;
-	string tableName = tableAlias.first;
+	string tableName = tableAliasList[0].first;
 	
-	int leftEnd = -1, rightStart = -1;
-	for (int i = 0; i < setStr.length(); i++)
-	{
-		if (setStr[i] == "=")
-		{
-			leftEnd = i;
-			rightStart = i+1;
-			break;
-		}
-	}
-	if (leftEnd == -1 && rightStart == -1)
+	vector<char> leftChar, rightChar;
+	vector<string> tempVec = SplitStrWithLimit(setStr, '=', leftChar, rightChar);
+	if (tempVec.size() <= 1)
 	{
 		errh->ErrorHandle("SET", "syntax", "operator \"=\" not found");
 		return false;
 	}
-	string fieldName = StripStr(setStr.substr(0, leftEnd));
-	string target = StripStr(setStr.substr(rightStart, setStr.length()-rightStart));
+	else if (tempVec.size() >= 3)
+	{
+		errh->ErrorHandle("SET", "syntax", "too much operator \"=\"");
+		return false;
+	}
+
+	string fieldName = StripStr(tempVec[0]);
+	string target = StripStr(tempVec[1]);
+	if (target.length() == 0)
+	{
+		errh->ErrorHandle("SET", "sematic", "empty field value:"+setStr);
+		return false;
+	}
 	bool isNull = false;
 	if (ToLowerCase(target) == "null")
 	{
@@ -1786,7 +2036,22 @@ bool SynAnalyze::UpdateAnalyze(const string& cstr)
 	{
 		target = WordToStr(target);
 	}
+	else if (!IsInt(target))
+	{
+		errh->ErrorHandle("SET", "sematic", "invalid field value:"+target);
+		return false;
+	}
 
+/*
+	cout << "TableName:" << tableName << endl;
+	cout << "FieldName:" << fieldName << endl;
+	cout << "target:" << target << endl;
+	if (isNull)
+		cout << "null" << endl;
+	else
+		cout << "not null" << endl;
+	cout << "whereStr:" << whereStr << endl;
+*/
 	Relation relation;
 	if (!WhereAnalyze(whereStr, tableAliasList, relation))
 		return false;
@@ -1797,13 +2062,13 @@ bool SynAnalyze::UpdateAnalyze(const string& cstr)
 
 	if (!(qp->UpdateRecord(tableName, fieldName, target, isNull, posList)))
 		return false;
-*/
+
 	return true;
 }
 
 bool SynAnalyze::SelectAnalyze(const string& cstr, ViewTable& viewTable)
 {
-/*
+
 	if (StripStr(cstr).length() == 0)
 	{
 		errh->ErrorHandle("SELECT", "syntax", "empty command content.");
@@ -1831,26 +2096,35 @@ bool SynAnalyze::SelectAnalyze(const string& cstr, ViewTable& viewTable)
 		fromStr = StripStr(strVec[0]);
 		whereStr = StripStr(strVec[1]);
 	}
-
-	TableAliasList tableAliasList;
-	ShadowList shadowList;
+	/*
+	cout << "shadowStr:" << shadowStr << endl;
+	cout << "fromStr:" << fromStr << endl;
+	cout << "whereStr:" << whereStr << endl;
+	*/
+	vector<TableAlias> tableAliasList;
+	vector<Shadow> shadowList;
 	Relation relation;
 	if (!FromAnalyze(fromStr, tableAliasList))
 		return false;
 	if (!ShadowAnalyze(shadowStr, tableAliasList, shadowList))
 		return false;
+	//cout << "WhereStart:" << endl;
 	if (!WhereAnalyze(whereStr, tableAliasList, relation))
 		return false;
-
+	/*
+	qp->PrintRelation(relation);
+	qp->PrintShadowList(shadowList);
+	*/
 	if (!(qp->SelectRecord(shadowList, tableAliasList, relation, viewTable)))
 		return false;
-*/
+
 	return true;
 }
 
-bool SynAnalyze::CmdAnalyze(const string& cstr, ViewTable& viewTable)
+bool SynAnalyze::CmdAnalyze(const string& cstr, ViewTable& viewTable, bool& hasView, string& sysStr, bool& hasStr)
 {
-/*
+	hasView = false;
+	hasStr = false;
 	if (cstr[cstr.length()-1] != ';')
 	{
 		errh->ErrorHandle("COMMAND", "syntax", "command should end with \";\"");
@@ -1859,9 +2133,21 @@ bool SynAnalyze::CmdAnalyze(const string& cstr, ViewTable& viewTable)
 	string str(cstr.substr(0, cstr.length()-1)+" ");
 	if (StripStr(str).length() == 0)
 	{
-		cout << "emtpy cmd." << endl;
+		errh->ErrorHandle("COMMAND", "syntax", "emtpy cmd.");
 		return false;
 	}
+
+	//cout << cstr << endl;
+	int sysFlag;
+	sysStr = SysAnalyze(cstr, sysFlag);
+	if (sysFlag == -1)
+		return false;
+	else if (sysFlag == 1)
+	{
+		hasStr = true;		
+		return true;
+	}
+
 	bool inWord = false, hasInsert = false;
 	int start = 0;
 	for (int i = 0; i < str.length(); i++)
@@ -1880,13 +2166,18 @@ bool SynAnalyze::CmdAnalyze(const string& cstr, ViewTable& viewTable)
 				{
 					string remainStr = str.substr(i, str.length()-i);
 					if (tempWord == "into" && hasInsert)
-						return InsertAnalyze(remainStr, viewTable);
+						return InsertAnalyze(remainStr);
 					else if (tempWord == "delete")
 						return DeleteAnalyze(remainStr);
 					else if (tempWord == "update")
 						return UpdateAnalyze(remainStr);
 					else if (tempWord == "select")
-						return SelectAnalyze(remainStr);
+					{
+						bool success = SelectAnalyze(remainStr, viewTable);
+						if (success)
+							hasView = true;
+						return success;
+					}
 					else
 						break;
 				}
@@ -1901,8 +2192,7 @@ bool SynAnalyze::CmdAnalyze(const string& cstr, ViewTable& viewTable)
 			}
 		}
 	}
+	errh->ErrorHandle("COMMAND", "syntax", "command not found.");
 
-	cout << "command not found." << endl;
-*/
 	return false;
 }

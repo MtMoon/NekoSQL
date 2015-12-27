@@ -13,10 +13,11 @@
 int main() {
 
 	DataManager* dm = new DataManager();
+	IndexManager* im = new IndexManager(dm);
 	SysManager* sm = new SysManager(dm);
 	ErrorHandler* errh = new ErrorHandler();
 	QueryProcessor* qp = new QueryProcessor(dm, sm, errh);
-	SynAnalyze* sa = new SynAnalyze(sm, qp, errh);
+	SynAnalyze* sa = new SynAnalyze(sm, qp, errh, im);
 
 	string cmd = "";
 
