@@ -12,14 +12,15 @@ test.d: ../test.cpp ../bufmanager/BufPageManager.h \
  ../ErrorHandler/ErrorHandler.h ../QueryProcessor/QueryProcessor.h \
  ../QueryProcessor/../datamanager/DataManager.h \
  ../QueryProcessor/../sysmanager/SysManager.h \
+ ../QueryProcessor/../indexmanager/IndexManager.h \
+ ../QueryProcessor/../indexmanager/../bufmanager/BufPageManager.h \
+ ../QueryProcessor/../indexmanager/../datamanager/DataManager.h \
+ ../QueryProcessor/../indexmanager/../Tool/RecordTool.h \
  ../QueryProcessor/../ErrorHandler/ErrorHandler.h \
  ../SynAnalyze/SynAnalyze.h ../SynAnalyze/../ErrorHandler/ErrorHandler.h \
  ../SynAnalyze/../sysmanager/SysManager.h \
  ../SynAnalyze/../QueryProcessor/QueryProcessor.h \
  ../SynAnalyze/../indexmanager/IndexManager.h \
- ../SynAnalyze/../indexmanager/../bufmanager/BufPageManager.h \
- ../SynAnalyze/../indexmanager/../datamanager/DataManager.h \
- ../SynAnalyze/../indexmanager/../Tool/RecordTool.h \
  ../UserInterface/UserInterface.h \
  ../UserInterface/../bufmanager/BufPageManager.h \
  ../UserInterface/../datamanager/DataManager.h \
@@ -71,6 +72,14 @@ test.d: ../test.cpp ../bufmanager/BufPageManager.h \
 
 ../QueryProcessor/../sysmanager/SysManager.h:
 
+../QueryProcessor/../indexmanager/IndexManager.h:
+
+../QueryProcessor/../indexmanager/../bufmanager/BufPageManager.h:
+
+../QueryProcessor/../indexmanager/../datamanager/DataManager.h:
+
+../QueryProcessor/../indexmanager/../Tool/RecordTool.h:
+
 ../QueryProcessor/../ErrorHandler/ErrorHandler.h:
 
 ../SynAnalyze/SynAnalyze.h:
@@ -82,12 +91,6 @@ test.d: ../test.cpp ../bufmanager/BufPageManager.h \
 ../SynAnalyze/../QueryProcessor/QueryProcessor.h:
 
 ../SynAnalyze/../indexmanager/IndexManager.h:
-
-../SynAnalyze/../indexmanager/../bufmanager/BufPageManager.h:
-
-../SynAnalyze/../indexmanager/../datamanager/DataManager.h:
-
-../SynAnalyze/../indexmanager/../Tool/RecordTool.h:
 
 ../UserInterface/UserInterface.h:
 

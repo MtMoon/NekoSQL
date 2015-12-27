@@ -25,6 +25,7 @@ UserInterface/UserInterface.d: ../UserInterface/UserInterface.cpp \
  ../UserInterface/../QueryProcessor/QueryProcessor.h \
  ../UserInterface/../QueryProcessor/../datamanager/DataManager.h \
  ../UserInterface/../QueryProcessor/../sysmanager/SysManager.h \
+ ../UserInterface/../QueryProcessor/../indexmanager/IndexManager.h \
  ../UserInterface/../QueryProcessor/../ErrorHandler/ErrorHandler.h \
  ../UserInterface/../SynAnalyze/SynAnalyze.h \
  ../UserInterface/../SynAnalyze/../ErrorHandler/ErrorHandler.h \
@@ -83,6 +84,8 @@ UserInterface/UserInterface.d: ../UserInterface/UserInterface.cpp \
 ../UserInterface/../QueryProcessor/../datamanager/DataManager.h:
 
 ../UserInterface/../QueryProcessor/../sysmanager/SysManager.h:
+
+../UserInterface/../QueryProcessor/../indexmanager/IndexManager.h:
 
 ../UserInterface/../QueryProcessor/../ErrorHandler/ErrorHandler.h:
 

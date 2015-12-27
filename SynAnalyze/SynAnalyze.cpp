@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <cstring>
 #include <utility>
+#include <sstream>
 
 using namespace std;
 
@@ -401,6 +402,13 @@ bool IsInt(const string& value)
 			index++;
 		}
 	}
+	int num = atoi(value.c_str());
+	stringstream ss;
+	string numStr;
+	ss << num;
+	ss >> numStr;
+	if (numStr != value)
+		return false;
 	return true;
 }
 
@@ -1381,7 +1389,7 @@ bool SynAnalyze::TableFieldAnalyze(const string& cstr, const vector<TableAlias>&
 	return true;
 }
 
-//type: 1:table field 2:str or int const 0:operator -1:empty str
+//type: 1:table field 2: int 3: str 0:operator -1:empty str
 bool SynAnalyze::WhereWordAnalyze(const string& cstr, const vector<TableAlias>& tableAliasList, vector<WordInfo>& wordInfoList)
 {
 
@@ -1547,13 +1555,21 @@ bool SynAnalyze::WhereWordAnalyze(const string& cstr, const vector<TableAlias>& 
 			return false;
 		}
 		bool leftIsConst = true, rightIsConst = true;
+		bool leftIsStr = false, rightIsStr = false;
 		vector<string> tempVec;
 		if (IsStr(leftOperand))
+		{
+			leftIsStr = true;
 			leftOperand = WordToStr(leftOperand);
+		}
 		else if (!IsInt(leftOperand))
 			leftIsConst = false;
+
 		if (IsStr(rightOperand))
+		{
+			rightIsStr = true;
 			rightOperand = WordToStr(rightOperand);
+		}
 		else if (!IsInt(rightOperand))
 			rightIsConst = false;
 		/*
@@ -1572,6 +1588,9 @@ bool SynAnalyze::WhereWordAnalyze(const string& cstr, const vector<TableAlias>& 
 			string tempStr = rightOperand;
 			rightOperand = leftOperand;
 			leftOperand = tempStr;
+			bool tempIsStr = rightIsStr;
+			rightIsStr = leftIsStr;
+			leftIsStr = tempIsStr;
 			leftIsConst = false;
 			rightIsConst = true;
 			if (op == ">")
@@ -1593,7 +1612,7 @@ bool SynAnalyze::WhereWordAnalyze(const string& cstr, const vector<TableAlias>& 
 			wordInfo = WordInfo(leftVec[0], leftVec[1], "", 1);
 		}
 		else
-			wordInfo = WordInfo("", "", leftOperand, 2);
+			wordInfo = WordInfo("", "", leftOperand, (leftIsStr)?3:2);
 		wordInfoList.push_back(wordInfo);
 		wordInfo = WordInfo("", "", op, 0);
 		wordInfoList.push_back(wordInfo);
@@ -1604,7 +1623,7 @@ bool SynAnalyze::WhereWordAnalyze(const string& cstr, const vector<TableAlias>& 
 			wordInfo = WordInfo(rightVec[0], rightVec[1], "", 1);
 		}
 		else
-			wordInfo = WordInfo("", "", rightOperand, 2);
+			wordInfo = WordInfo("", "", rightOperand, (rightIsStr)?3:2);
 		wordInfoList.push_back(wordInfo);
 	}
 	return true;
@@ -1686,7 +1705,7 @@ bool SynAnalyze::WhereAnalyze(const string& str, const vector<TableAlias>& table
 			if (wordInfoList[2].type != 1)
 			{
 				if (!qp->ConditionFilter(tableAliasList[leftIndex].first, tableInfoList[leftIndex], 
-							wordInfoList[0].field, wordInfoList[2].constStr, wordInfoList[1].constStr, *tempRel))
+							wordInfoList[0].field, wordInfoList[2].constStr, wordInfoList[2].type-2, wordInfoList[1].constStr, *tempRel))
 					return false;
 			}
 			else
@@ -1872,6 +1891,7 @@ bool SynAnalyze::InsertAnalyze(const string& cstr)
 		vector<string> fieldValList = SplitStrWithLimit(valStr, ',', leftChar, rightChar);
 		fieldValList = StripVector(fieldValList);
 		vector<bool> isNull;
+		vector<int> fieldTypeList;
 		vector<string> fieldList;
 		for (int j = 0; j < fieldValList.size(); j++)
 		{
@@ -1884,18 +1904,24 @@ bool SynAnalyze::InsertAnalyze(const string& cstr)
 			if (ToLowerCase(fieldValList[j]) == "null")
 			{
 				isNull.push_back(true);
+				fieldTypeList.push_back(-1);
 				fieldValList[j] = "";
 			}
 			else
 			{
 				isNull.push_back(false);
 				if (IsStr(fieldValList[j]))
+				{
 					fieldValList[j] = WordToStr(fieldValList[j]);
+					fieldTypeList.push_back(1);
+				}
 				else if (!IsInt(fieldValList[j]))
 				{
 					errh->ErrorHandle("INSERT", "syntax", "invalid field value:"+fieldValList[j]);
 					return false;	
 				}
+				else
+					fieldTypeList.push_back(0);
 			}
 		}
 		/*
@@ -1913,7 +1939,7 @@ bool SynAnalyze::InsertAnalyze(const string& cstr)
 		}
 		cout << endl;
 		*/
-		if(!(qp->InsertRecord(tableName, fieldList, fieldValList, isNull)))
+		if(!(qp->InsertRecord(tableName, fieldList, fieldValList, isNull, fieldTypeList)))
 			return false;
 
 	}
@@ -2027,19 +2053,26 @@ bool SynAnalyze::UpdateAnalyze(const string& cstr)
 		return false;
 	}
 	bool isNull = false;
+	int fieldType;
 	if (ToLowerCase(target) == "null")
 	{
 		isNull = true;
 		target = "";
+		fieldType = -1;
 	}
 	else if (IsStr(target))
 	{
 		target = WordToStr(target);
+		fieldType = 1;
 	}
 	else if (!IsInt(target))
 	{
 		errh->ErrorHandle("SET", "sematic", "invalid field value:"+target);
 		return false;
+	}
+	else
+	{
+		fieldType = 0;
 	}
 
 /*
@@ -2060,7 +2093,7 @@ bool SynAnalyze::UpdateAnalyze(const string& cstr)
 	for (int i = 0 ; i < relation.second.size(); i++)
 		posList.push_back(relation.second[i][0]);
 
-	if (!(qp->UpdateRecord(tableName, fieldName, target, isNull, posList)))
+	if (!(qp->UpdateRecord(tableName, fieldName, target, isNull, fieldType, posList)))
 		return false;
 
 	return true;

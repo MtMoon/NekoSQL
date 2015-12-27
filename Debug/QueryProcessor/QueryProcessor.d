@@ -16,6 +16,10 @@ QueryProcessor/QueryProcessor.d: ../QueryProcessor/QueryProcessor.cpp \
  ../QueryProcessor/../datamanager/../Tool/../utils/pagedef.h \
  ../QueryProcessor/../sysmanager/SysManager.h \
  ../QueryProcessor/../sysmanager/../datamanager/DataManager.h \
+ ../QueryProcessor/../indexmanager/IndexManager.h \
+ ../QueryProcessor/../indexmanager/../bufmanager/BufPageManager.h \
+ ../QueryProcessor/../indexmanager/../datamanager/DataManager.h \
+ ../QueryProcessor/../indexmanager/../Tool/RecordTool.h \
  ../QueryProcessor/../ErrorHandler/ErrorHandler.h
 
 ../QueryProcessor/QueryProcessor.h:
@@ -51,5 +55,13 @@ QueryProcessor/QueryProcessor.d: ../QueryProcessor/QueryProcessor.cpp \
 ../QueryProcessor/../sysmanager/SysManager.h:
 
 ../QueryProcessor/../sysmanager/../datamanager/DataManager.h:
+
+../QueryProcessor/../indexmanager/IndexManager.h:
+
+../QueryProcessor/../indexmanager/../bufmanager/BufPageManager.h:
+
+../QueryProcessor/../indexmanager/../datamanager/DataManager.h:
+
+../QueryProcessor/../indexmanager/../Tool/RecordTool.h:
 
 ../QueryProcessor/../ErrorHandler/ErrorHandler.h:

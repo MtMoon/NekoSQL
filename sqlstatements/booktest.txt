@@ -1,0 +1,10 @@
+select * from book where authors is null;
+select publisher_id,pages,id,title,authors from book where title <= 'Guerilla Games (Executioner)';
+select * from book where copies > 7907;
+select id,copies from book where authors = 'David Gifaldi';
+select * from book where pages <= 1710;
+select * from book where pages is not null;
+select * from book where publisher_id >= 100189;
+select * from book where authors is not null;
+select * from book where copies = 7612;
+select * from book where copies >= 2133;

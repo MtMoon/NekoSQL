@@ -1,1 +1,3 @@
-pid book id 0 1 0 1 4
+pid book id 0 1 0 0 4
+ptitle book title 1 0 0 1 0
+ppublisher_id book publisher_id 0 1 0 1 4

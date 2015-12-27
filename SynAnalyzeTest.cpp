@@ -10,7 +10,7 @@
 #include <cstdlib>
 #include "SynAnalyze/SynAnalyze.h"
 
-int main() {
+/*int main() {
 
 	DataManager* dm = new DataManager();
 	IndexManager* im = new IndexManager(dm);
@@ -41,6 +41,6 @@ int main() {
 
 
 	return 0;
-}
+}*/
 
 

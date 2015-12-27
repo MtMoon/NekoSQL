@@ -3,16 +3,18 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+#include <sstream>
 
 using namespace std;
 
-QueryProcessor::QueryProcessor(DataManager* dm, SysManager* sm, ErrorHandler* errh)
+QueryProcessor::QueryProcessor(DataManager* dm, SysManager* sm, IndexManager* im, ErrorHandler* errh)
 {
 	assert(dm != NULL);
 	assert(sm != NULL);
 	assert(errh != NULL);
 	dataManager = dm;
 	sysManager = sm;
+	indexManager = im;
 	errHandler = errh;
 }
 
@@ -53,6 +55,13 @@ bool QueryProcessor::IsInt(const string& value)
 			index++;
 		}
 	}
+	int num = atoi(value.c_str());
+	stringstream ss;
+	string numStr;
+	ss << num;
+	ss >> numStr;
+	if (numStr != value)
+		return false;
 	return true;
 }
 
@@ -190,12 +199,36 @@ bool QueryProcessor::DeleteAllRecord(const string& tableName)
 {
 
 	vector<LP> allPos = dataManager->getAllLPInTable(tableName.c_str());
+
+	int fieldFlag;
+	vector<FieldInfo> fieldInfoList = sysManager->descTable(string(tableName), fieldFlag);
+	TableInfo tb = dataManager->getTableInfo(tableName.c_str());
+	for (int i = 0; i < fieldInfoList.size(); i++)
+	{
+		bool indexFlag;
+		IndexInfo indexInfo = indexManager->getIndexInfo(tableName, fieldInfoList[i].fieldName, indexFlag);
+		if (indexFlag)
+		{
+			indexManager->setIndex(tableName, indexInfo.indexName);
+			for (int j = 0; j < allPos.size(); j++)
+			{
+				Data data = dataManager->getRecordByLP(tableName.c_str(), allPos[j]);
+				ConDP condi = RecordTool::getFieldValueInRecord(tb, data, fieldInfoList[i].fieldName);
+				if ((indexManager->deleteRecord(condi, allPos[j])) == 0)
+				{
+					errHandler->ErrorHandle("DELETE", "index", "index not exist.");
+					return false;	
+				}
+			}
+		}	
+	}
+
 	for (int i = 0; i < allPos.size(); i++)
 	{
 		if (!(dataManager->deleteRecord(tableName.c_str(), allPos[i])))
 		{
 			errHandler->ErrorHandle("DELETE", "operational", "Deletion failed.");
-			cout << tableName << ":<" << allPos[i].first << "," << allPos[i].second << ">" << endl;
+			//cout << tableName << ":<" << allPos[i].first << "," << allPos[i].second << ">" << endl;
 			return false;
 		}
 	}
@@ -209,13 +242,38 @@ bool QueryProcessor::DeleteRecord(const string& tableName, const Relation& relat
 	assert(relation.first.size() == 1);
 	assert(relation.first[0] == tableName);
 	int size = relation.second.size();
+
+	int fieldFlag;
+	vector<FieldInfo> fieldInfoList = sysManager->descTable(string(tableName), fieldFlag);
+	TableInfo tb = dataManager->getTableInfo(tableName.c_str());
+	for (int i = 0; i < fieldInfoList.size(); i++)
+	{
+		bool indexFlag;
+		IndexInfo indexInfo = indexManager->getIndexInfo(tableName, fieldInfoList[i].fieldName, indexFlag);
+		if (indexFlag)
+		{
+			indexManager->setIndex(tableName, indexInfo.indexName);
+			for (int j = 0; j < size; j++)
+			{
+				Tuple tuple = relation.second[j];
+				Data data = dataManager->getRecordByLP(tableName.c_str(), tuple[0]);
+				ConDP condi = RecordTool::getFieldValueInRecord(tb, data, fieldInfoList[i].fieldName);
+				if ((indexManager->deleteRecord(condi, tuple[0])) == 0)
+				{
+					errHandler->ErrorHandle("DELETE", "index", "index not exist.");
+					return false;	
+				}
+			}
+		}	
+	}
+
 	for (int i = 0; i < size; i++)
 	{
-		Tuple tuple = relation.second[i];
+		Tuple tuple = relation.second[i];	
 		if (!(dataManager->deleteRecord(tableName.c_str(), tuple[0])))
 		{
 			errHandler->ErrorHandle("DELETE", "operational", "Deletion failed.");
-			cout << tableName << ":<" << tuple[0].first << "," << tuple[0].second << ">" << endl;
+			//cout << tableName << ":<" << tuple[0].first << "," << tuple[0].second << ">" << endl;
 			return false;
 		}
 	}
@@ -223,7 +281,7 @@ bool QueryProcessor::DeleteRecord(const string& tableName, const Relation& relat
 	return true;
 }
 
-bool QueryProcessor::UpdateRecord(const string& tableName, const string& fieldName, const string& target, bool isNull, const vector<LP>& pos)
+bool QueryProcessor::UpdateRecord(const string& tableName, const string& fieldName, const string& target, bool isNull, int type, const vector<LP>& pos)
 {
 
 	int flag;
@@ -291,7 +349,7 @@ bool QueryProcessor::UpdateRecord(const string& tableName, const string& fieldNa
 			{
 				if (isNull)
 				{
-					if (fieldInfoList[j].ifNull)
+					if (!(fieldInfoList[j].ifNull))
 					{
 						errHandler->ErrorHandle("UPDATE", "semantic", "field "+fieldInfoList[j].fieldName+" can not be null.");
 						return false;
@@ -301,9 +359,15 @@ bool QueryProcessor::UpdateRecord(const string& tableName, const string& fieldNa
 				}
 				else
 				{
+					if (type == 0 && fieldInfoList[j].fieldType != 0 || type == 1 && fieldInfoList[j].fieldType == 0)
+					{
+						errHandler->ErrorHandle("UPDATE", "semantic", "field type mismatch:"+fieldInfoList[j].fieldName+":"+target);
+						return false;				
+					}
 					ConDP tempCondi;
 			 		if (!MakeData(fieldInfoList[j], target, "UPDATE", data, tempCondi))
 						return false;
+					/****************************primary key **********************
 					if (fieldInfoList[j].key == 2)
 					{
 						vector<LP> posVec = dataManager->searchRecord(tableName.c_str(), tempCondi, 0);
@@ -315,6 +379,7 @@ bool QueryProcessor::UpdateRecord(const string& tableName, const string& fieldNa
 							return false;
 						}
 					}
+					*/
 				}
 			}
 			dataPairs[j].first = fieldInfoList[j].fieldName;
@@ -338,14 +403,44 @@ bool QueryProcessor::UpdateRecord(const string& tableName, const string& fieldNa
 				cout << dataPairs[j].second.first[k];
 			cout << endl;
 		}
-*/		
+*/
+
+		
+		TableInfo tb = dataManager->getTableInfo(tableName.c_str());
+		vector<ConDP> condiVec;
+		for (int j = 0; j < fieldInfoList.size(); j++)
+		{
+			bool indexFlag;
+			IndexInfo indexInfo = indexManager->getIndexInfo(tableName, fieldInfoList[j].fieldName, indexFlag);
+			if (indexFlag)
+			{
+				Data data = dataManager->getRecordByLP(tableName.c_str(), updatePos[i]);
+				ConDP condi = RecordTool::getFieldValueInRecord(tb, data, fieldInfoList[j].fieldName);
+				condiVec.push_back(condi);
+			}
+		}
+
 		dataManager->deleteRecord(tableName.c_str(), updatePos[i]);
 		int len = 0;
-		Byte* tempRecord = NULL;
-		TableInfo tb = dataManager->getTableInfo(tableName.c_str());
+		Byte* tempRecord = NULL;		
 		tempRecord = RecordTool::makeRecord(tb, len, dataPairs, fieldCnt);
 		Data tempData(tempRecord, len);
 		dataManager->insertRecord(tableName.c_str(), tempData, updatePos[i]);
+
+		for (int j = 0; j < condiVec.size(); j++)
+		{
+			bool indexFlag;
+			IndexInfo indexInfo = indexManager->getIndexInfo(tableName, condiVec[j].name, indexFlag);
+			assert(indexFlag);
+			indexManager->setIndex(tableName, indexInfo.indexName);
+			Data data = dataManager->getRecordByLP(tableName.c_str(), updatePos[i]);
+			ConDP newCondi = RecordTool::getFieldValueInRecord(tb, data, condiVec[j].name);
+			if (!(indexManager->upDateRecord(condiVec[j], newCondi, updatePos[i], updatePos[i])))
+			{
+				errHandler->ErrorHandle("UPDATE", "index", "index not exist.");
+				return false;	
+			}	
+		}
 		/*
 		if (!(dataManager->updateRecord(tableName.c_str(), updatePos[i], dataPairs, fieldCnt)))
 		{
@@ -359,7 +454,7 @@ bool QueryProcessor::UpdateRecord(const string& tableName, const string& fieldNa
 	return true;
 }
 
-bool QueryProcessor::InsertRecord(const string& tableName, const vector<string>& fieldNames, const vector<string>& values, const vector<bool>& isNulls)
+bool QueryProcessor::InsertRecord(const string& tableName, const vector<string>& fieldNames, const vector<string>& values, const vector<bool>& isNulls, const vector<int>& types)
 {
 /*
 	int flag;
@@ -450,7 +545,7 @@ bool QueryProcessor::InsertRecord(const string& tableName, const vector<string>&
 		Data data;
 		if (index == -1 || isNulls[index])
 		{
-			if (fieldInfoList[i].ifNull)
+			if (!(fieldInfoList[i].ifNull))
 			{
 				errHandler->ErrorHandle("INSERT", "semantic", "field "+fieldInfoList[i].fieldName+" can not be null.");
 				return false;
@@ -460,9 +555,16 @@ bool QueryProcessor::InsertRecord(const string& tableName, const vector<string>&
 		}
 		else
 		{
+			if (types[index] == 0 && fieldInfoList[i].fieldType != 0 || types[index] == 1 && fieldInfoList[i].fieldType == 0)
+			{
+				errHandler->ErrorHandle("INSERT", "semantic", "field type mismatch:"+fieldInfoList[i].fieldName+":"+values[index]);
+				return false;	
+			}
+		
 			ConDP condi;
 			if (!(MakeData(fieldInfoList[i], values[index], "INSERT", data, condi)))
 				return false;
+			/****************************primary key **********************
 			if (fieldInfoList[i].key == 2)
 			{
 				vector<LP> posVec = dataManager->searchRecord(tableName.c_str(), condi, 0);
@@ -474,6 +576,7 @@ bool QueryProcessor::InsertRecord(const string& tableName, const vector<string>&
 					return false;
 				}
 			}
+			*/
 		}
 		dataPairs[i].first = fieldInfoList[i].fieldName;
 		//cout << i << ":" << dataPairs[i].first << "#" << fieldInfoList[i].fieldName << endl;
@@ -501,7 +604,6 @@ bool QueryProcessor::InsertRecord(const string& tableName, const vector<string>&
 		cout << endl;
 	}
 */
-	//cout << "start of insertion" << endl;
 
 	LP tempLP;
 	if (!(dataManager->insertRecord(tableName.c_str(), newDataPairs, fieldCnt, tempLP)))
@@ -509,7 +611,20 @@ bool QueryProcessor::InsertRecord(const string& tableName, const vector<string>&
 		errHandler->ErrorHandle("INSERT", "operational", "Insertion failed.");
 		return false;
 	}
-	//cout << "end of insertion" << endl;
+
+	TableInfo tb = dataManager->getTableInfo(tableName.c_str());
+	for (int i = 0; i < fieldInfoList.size(); i++)
+	{
+		bool indexFlag;
+		IndexInfo indexInfo = indexManager->getIndexInfo(tableName, fieldInfoList[i].fieldName, indexFlag);
+		if (indexFlag)
+		{
+			indexManager->setIndex(tableName, indexInfo.indexName);
+			Data data = dataManager->getRecordByLP(tableName.c_str(), tempLP);
+			ConDP condi = RecordTool::getFieldValueInRecord(tb, data, fieldInfoList[i].fieldName);
+			indexManager->insertRecord(condi, tempLP);
+		}	
+	}
 	return true;
 }
 
@@ -567,7 +682,7 @@ vector<LP> QueryProcessor::RemainLP(const vector<LP>& father, const vector<LP>& 
 	return remain;
 }
 
-bool QueryProcessor::ConditionFilter(const string& tableName, const vector<FieldInfo>& fieldInfoList, const string& fieldName, const string& target, const string& op, Relation& relation)
+bool QueryProcessor::ConditionFilter(const string& tableName, const vector<FieldInfo>& fieldInfoList, const string& fieldName, const string& target, int type, const string& op, Relation& relation)
 {
 	relation.first.clear();
 	relation.second.clear();
@@ -592,7 +707,11 @@ bool QueryProcessor::ConditionFilter(const string& tableName, const vector<Field
 		data = Data(NULL, 0);
 	else
 	{
-
+		if (type == 0 && fieldInfoList[index].fieldType != 0 || type == 1 && fieldInfoList[index].fieldType == 0)
+		{
+			errHandler->ErrorHandle("WHERE", "sematic", "field type mismatch:"+fieldInfoList[index].fieldName+":"+target);
+			return false;			
+		}
 		if (!MakeData(fieldInfoList[index], target, "WHERE", data, tempCondi))
 			return false;
 	}
@@ -622,20 +741,36 @@ bool QueryProcessor::ConditionFilter(const string& tableName, const vector<Field
 	}
 	else if (op == "not Null")
 	{
+		/*
 		vector<LP> allRecords = dataManager->getAllLPInTable(tableName.c_str());
 		vector<LP> tempRecords = dataManager->searchRecord(tableName.c_str(), condi, 3);
 		records = RemainLP(allRecords, tempRecords);
+		*/
+		records = dataManager->searchRecord(tableName.c_str(), condi, 5);
 	}
 	else if (op == "=")
 	{
-		records = dataManager->searchRecord(tableName.c_str(), condi, 0);
+		bool indexFlag;
+		IndexInfo indexInfo = indexManager->getIndexInfo(tableName, fieldName, indexFlag);
+		if (indexFlag)
+		{
+			indexManager->setIndex(tableName, indexInfo.indexName);
+			records = indexManager->searchKey(condi);
+		}
+		else
+		{
+			records = dataManager->searchRecord(tableName.c_str(), condi, 0);
+		}
 	}
 	else if (op == "!=")
 	{
+		/*
 		vector<LP> allRecords = dataManager->getAllLPInTable(tableName.c_str());
 		vector<LP> tempRecords = dataManager->searchRecord(tableName.c_str(), condi, 0);
 		vector<LP> nullRecords = dataManager->searchRecord(tableName.c_str(), nullCondi, 3);
 		records = RemainLP(RemainLP(allRecords, nullRecords), tempRecords);
+		*/
+		records = dataManager->searchRecord(tableName.c_str(), condi, 4);
 	}
 	else if (op == ">")
 	{
@@ -647,17 +782,33 @@ bool QueryProcessor::ConditionFilter(const string& tableName, const vector<Field
 	}
 	else if (op == ">=")
 	{
+		/*
 		vector<LP> allRecords = dataManager->getAllLPInTable(tableName.c_str());
 		vector<LP> tempRecords = dataManager->searchRecord(tableName.c_str(), condi, 2);
 		vector<LP> nullRecords = dataManager->searchRecord(tableName.c_str(), nullCondi, 3);
 		records = RemainLP(RemainLP(allRecords, nullRecords), tempRecords);
+		*/
+		vector<LP> largerRecords = dataManager->searchRecord(tableName.c_str(), condi, 1);
+		vector<LP> equalRecords = dataManager->searchRecord(tableName.c_str(), condi, 0);
+		for (int i = 0; i < largerRecords.size(); i++)
+			records.push_back(largerRecords[i]);
+		for (int i = 0; i < equalRecords.size(); i++)
+			records.push_back(equalRecords[i]);
 	}
 	else if (op == "<=")
 	{
+		/*
 		vector<LP> allRecords = dataManager->getAllLPInTable(tableName.c_str());
 		vector<LP> tempRecords = dataManager->searchRecord(tableName.c_str(), condi, 1);
 		vector<LP> nullRecords = dataManager->searchRecord(tableName.c_str(), nullCondi, 3);
 		records = RemainLP(RemainLP(allRecords, nullRecords), tempRecords);
+		*/
+		vector<LP> smallerRecords = dataManager->searchRecord(tableName.c_str(), condi, 2);
+		vector<LP> equalRecords = dataManager->searchRecord(tableName.c_str(), condi, 0);
+		for (int i = 0; i < smallerRecords.size(); i++)
+			records.push_back(smallerRecords[i]);
+		for (int i = 0; i < equalRecords.size(); i++)
+			records.push_back(equalRecords[i]);
 	}	
 	else
 	{

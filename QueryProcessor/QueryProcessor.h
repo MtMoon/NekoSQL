@@ -3,6 +3,7 @@
 
 #include "../datamanager/DataManager.h"
 #include "../sysmanager/SysManager.h"
+#include "../indexmanager/IndexManager.h"
 #include "../ErrorHandler/ErrorHandler.h"
 #include <string>
 #include <vector>
@@ -24,14 +25,14 @@ typedef std::pair<ViewTitle, std::vector<ViewEntry> > ViewTable;
 class QueryProcessor
 {
 public:
-	QueryProcessor(DataManager* dm, SysManager* sm, ErrorHandler* errh);
+	QueryProcessor(DataManager* dm, SysManager* sm, IndexManager* im, ErrorHandler* errh);
 	~QueryProcessor();
 	bool SelectRecord(const std::vector<Shadow>& cShadowList, const std::vector<TableAlias>& tableAliasList, const Relation& relation, ViewTable& viewTable);
 	bool DeleteAllRecord(const std::string& tableName);
 	bool DeleteRecord(const std::string& tableName, const Relation& relation);
-	bool UpdateRecord(const std::string& tableName, const std::string& fieldName, const std::string& target, bool isNull, const std::vector<LP>& pos);
-	bool InsertRecord(const std::string& tableName, const std::vector<std::string>& fieldNames, const std::vector<std::string>& values, const std::vector<bool>& isNulls);
-	bool ConditionFilter(const std::string& tableName, const std::vector<FieldInfo>& fieldInfoList, const std::string& fieldName, const std::string& target, const std::string& op, Relation& relation);
+	bool UpdateRecord(const std::string& tableName, const std::string& fieldName, const std::string& target, bool isNull, int type, const std::vector<LP>& pos);
+	bool InsertRecord(const std::string& tableName, const std::vector<std::string>& fieldNames, const std::vector<std::string>& values, const std::vector<bool>& isNulls, const std::vector<int>& types);
+	bool ConditionFilter(const std::string& tableName, const std::vector<FieldInfo>& fieldInfoList, const std::string& fieldName, const std::string& target, int type, const std::string& op, Relation& relation);
 	bool LinkFilter(const std::string& leftTable, const std::string& rightTable, const std::vector<FieldInfo>& leftInfo, const std::vector<FieldInfo>& rightInfo, const std::string& leftField, const std::string& rightField, const std::string& op, Relation& relation);
 	Relation AndOp(const Relation& leftRel, const Relation& rightRel);
 	Relation OrOp(const Relation& leftRel, const Relation& rightRel);
@@ -39,6 +40,7 @@ public:
 //private:
 	DataManager* dataManager;
 	SysManager* sysManager;
+	IndexManager* indexManager;
 	ErrorHandler* errHandler;
 
 	bool intOverflowFlag;

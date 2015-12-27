@@ -14,7 +14,7 @@ ConsoleInterface::ConsoleInterface()
 	sm = new SysManager(dm);
 	im = new IndexManager(dm);
 	errh = new ErrorHandler();
-	qp = new QueryProcessor(dm, sm, errh);
+	qp = new QueryProcessor(dm, sm, im, errh);
 	sa = new SynAnalyze(sm, qp, errh, im);
 }
 
@@ -52,7 +52,7 @@ FileInterface::FileInterface(const string& rootDir_)
 	sm = new SysManager(dm);
 	im = new IndexManager(dm);
 	errh = new ErrorHandler();
-	qp = new QueryProcessor(dm, sm, errh);
+	qp = new QueryProcessor(dm, sm, im, errh);
 	sa = new SynAnalyze(sm, qp, errh, im);
 	rootDir = rootDir_;
 	dbName = "";

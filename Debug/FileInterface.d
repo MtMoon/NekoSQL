@@ -18,11 +18,12 @@ FileInterface.d: ../FileInterface.cpp ../SynAnalyze/SynAnalyze.h \
  ../SynAnalyze/../QueryProcessor/QueryProcessor.h \
  ../SynAnalyze/../QueryProcessor/../datamanager/DataManager.h \
  ../SynAnalyze/../QueryProcessor/../sysmanager/SysManager.h \
+ ../SynAnalyze/../QueryProcessor/../indexmanager/IndexManager.h \
+ ../SynAnalyze/../QueryProcessor/../indexmanager/../bufmanager/BufPageManager.h \
+ ../SynAnalyze/../QueryProcessor/../indexmanager/../datamanager/DataManager.h \
+ ../SynAnalyze/../QueryProcessor/../indexmanager/../Tool/RecordTool.h \
  ../SynAnalyze/../QueryProcessor/../ErrorHandler/ErrorHandler.h \
- ../SynAnalyze/../indexmanager/IndexManager.h \
- ../SynAnalyze/../indexmanager/../bufmanager/BufPageManager.h \
- ../SynAnalyze/../indexmanager/../datamanager/DataManager.h \
- ../SynAnalyze/../indexmanager/../Tool/RecordTool.h
+ ../SynAnalyze/../indexmanager/IndexManager.h
 
 ../SynAnalyze/SynAnalyze.h:
 
@@ -64,12 +65,14 @@ FileInterface.d: ../FileInterface.cpp ../SynAnalyze/SynAnalyze.h \
 
 ../SynAnalyze/../QueryProcessor/../sysmanager/SysManager.h:
 
+../SynAnalyze/../QueryProcessor/../indexmanager/IndexManager.h:
+
+../SynAnalyze/../QueryProcessor/../indexmanager/../bufmanager/BufPageManager.h:
+
+../SynAnalyze/../QueryProcessor/../indexmanager/../datamanager/DataManager.h:
+
+../SynAnalyze/../QueryProcessor/../indexmanager/../Tool/RecordTool.h:
+
 ../SynAnalyze/../QueryProcessor/../ErrorHandler/ErrorHandler.h:
 
 ../SynAnalyze/../indexmanager/IndexManager.h:
-
-../SynAnalyze/../indexmanager/../bufmanager/BufPageManager.h:
-
-../SynAnalyze/../indexmanager/../datamanager/DataManager.h:
-
-../SynAnalyze/../indexmanager/../Tool/RecordTool.h:
