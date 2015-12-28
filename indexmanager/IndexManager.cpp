@@ -187,8 +187,8 @@ IndexInfo IndexManager::getIndexInfo(string tableName, string fieldName, bool& f
 IndexInfo IndexManager::getIndexInfo2(string tableName, string indexName, bool& flag) {
 	flag = false;
 	for (map<string, IndexInfo>::iterator it = indexMap.begin(); it != indexMap.end(); ++it) {
-		cout << it->second.tableName << " " << it->second.indexName << endl;
-		cout << "create: " << tableName << " " << indexName << endl;
+		//cout << it->second.tableName << " " << it->second.indexName << endl;
+		//cout << "create: " << tableName << " " << indexName << endl;
 		if (it->second.tableName == tableName && it->second.indexName == indexName) {
 			flag = true;
 			return it->second;
@@ -209,6 +209,7 @@ void  IndexManager::setDataBase(string dbName) {
 
 void IndexManager::setIndex(string tableName, string indexName) {
 	//openIndex(tableName, indexName);
+	closeIndex(currentTable, currentIndex);
 	currentTable = tableName;
 	currentIndex = indexName;
 	//currentIndexInfo = getCurrentIndexInfo();
@@ -263,6 +264,7 @@ vector<LP> IndexManager::searchKey(ConDP key) {
 
 		if (ConDPEqual(key, linekey)) {
 			ans.push_back(keypos);
+			//cout << "correct pos: " << keypos.first << " " << keypos.second << endl;
 		}
 		pageOff += lineLen;
 		//return ans;
@@ -324,10 +326,14 @@ int IndexManager::reBuildData(IndexInfo indexinfo) {
 	//获取数据文件的所有KP
 	vector<KP> vec = dm->getAllKPInTable(indexinfo.tableName.c_str(), indexinfo.fieldName);
 	int vecSize = vec.size();
+	int yxycount = 0;
 	for (int i=0; i<vecSize; i++) {
 		insert(vec[i].second, vec[i].first);
+		if (vec[i].second.value_int == 104169) {
+			yxycount++;
+		}
 	}
-
+	cout << "yxycount___________________ " << yxycount << endl;
 	return 1;
 }
 
@@ -448,7 +454,7 @@ int IndexManager::addIndexInfo(IndexInfo indexinfo) {
 //找到包含key的叶节点页，返回页号
 //失败时返回-1
 int  IndexManager::search(ConDP key) {
-	cout << "enter search" << endl;
+	//cout << "enter search" << endl;
 	//从根节点出发
 	int v = 1; //第0页为meta数据页
 	hot = 0;
@@ -469,12 +475,10 @@ int  IndexManager::search(ConDP key) {
 //插入，用于非簇集索引，用于插入到页级索引页
 bool IndexManager::insert(ConDP key, LP pos) {
 	openIndex(currentTable, currentIndex);
-	cout << "**************insert, pos: " << pos.first << " " << pos.second << " ";
-	if (key.type == 0) {
-		cout << key.value_int;
-	} else {
-		cout << key.value_str;
-	}
+
+	/*if (key.type == 0 && key.value_int == 104169) {
+		cout << "**************insert, pos: " << pos.first << " " << pos.second << " "  << key.value_int << endl;
+	}*/
 	//cout << "************" << endl;
 
 	int v = search(key);
@@ -488,7 +492,12 @@ bool IndexManager::insert(ConDP key, LP pos) {
 	//查找页级索引页
 	int pageoff = 96;
 	pageoff = leafNodeSearch(key, v, 1, 1);
+
+	/*if (key.type == 0 && key.value_int == 104169) {
+		cout << "insert pageoff: " << pageoff << endl;
+	}*/
 	//cout << "insert pageoff: " << pageoff << endl;
+
 	int pageindex = 0;
 	ibm->getPage(currentFileID, v, pageindex);
 	Byte* page = (Byte*)ibm->addr[pageindex];
@@ -534,7 +543,7 @@ void IndexManager::solveOverflow(int v) {
 	if (lineNum <= upper_bound) {
 		return;
 	}
-	cout << "__________enter solveOverflow, doing_______________" << endl;
+	//cout << "__________enter solveOverflow, doing_______________" << endl;
 	//cout << "overflow page v: " << v << endl;
 	//cout << "overflow page line num: " << lineNum << endl;
 	int parent = RecordTool::byte2Int(page1+7, 4);
@@ -580,7 +589,7 @@ void IndexManager::solveOverflow(int v) {
 
 	//分裂
 	int u = newIndexPage(pageType, parent);
-	cout << "new page u: " << u << endl;
+	//cout << "new page u: " << u << endl;
 	int index2 = -1;
 	Byte* page2 = (Byte*)(ibm->getPage(currentFileID, u, index2));
 
@@ -935,7 +944,7 @@ ConDP  IndexManager::getKeyByLine(Byte* line, IndexInfo& indexinfo, LP& pos) {
 //判等查找时，若找不到，会返回-1
 // nodetype 0 中间节点 1叶节点
 int  IndexManager::leafNodeSearch(ConDP conkey, int v, int searchtype, int nodetype) {
-	cout << "enter leafnode search v: " << v << endl;
+	//cout << "enter leafnode search v: " << v << endl;
 	openIndex(currentTable, currentIndex);
 	int pageindex = 0;
 	ibm->getPage(currentFileID, v, pageindex);
@@ -953,7 +962,7 @@ int  IndexManager::leafNodeSearch(ConDP conkey, int v, int searchtype, int nodet
 		return -1;
 	}
 
-	cout << "leaf node line num: " << lineNum << endl;
+	//cout << "leaf node line num: " << lineNum << endl;
 	int pageOff = 96;
 	int lineLen = 0;
 	int count = 0;
@@ -991,6 +1000,10 @@ int  IndexManager::leafNodeSearch(ConDP conkey, int v, int searchtype, int nodet
 		}
 		if (indexinfo.fieldType == 0) { //int
 			int key = RecordTool::byte2Int(line+start, end-start);
+
+			//cout << "leaf node search, line key: " << key << endl;
+			//cout << "leaf node search, con key: " << conkey.value_int << endl;
+
 			if ((searchtype == 0 && conkey.value_int == key) || ((searchtype == 1 && conkey.value_int < key)) ){
 				flag = true;
 				break;
@@ -999,8 +1012,8 @@ int  IndexManager::leafNodeSearch(ConDP conkey, int v, int searchtype, int nodet
 			char key[end-start+1];
 			RecordTool::byte2Str(key, line+start, end-start);
 			key[end-start] = '\0';
-			cout << "leaf node search, line key: " << string(key) << endl;
-			cout << "leaf node search, con key: " << conkey.value_str << endl;
+			//cout << "leaf node search, line key: " << string(key) << endl;
+			//cout << "leaf node search, con key: " << conkey.value_str << endl;
 			if ((searchtype == 0 && conkey.value_str == string(key)) || ((searchtype == 1 && conkey.value_str < string(key)))) {
 				flag = true;
 				break;
@@ -1025,7 +1038,7 @@ int  IndexManager::leafNodeSearch(ConDP conkey, int v, int searchtype, int nodet
 // type 下页类型，0 中间索引页，1 叶级页
 // pageoff conkey值在节点中的偏移量
 int  IndexManager::nodeSearch(ConDP conkey, int v, int& type) {
-	cout << "enter node search v: " << v << endl;
+	//cout << "enter node search v: " << v << endl;
 	openIndex(currentTable, currentIndex);
 	int pageindex = 0;
 	ibm->getPage(currentFileID, v, pageindex);

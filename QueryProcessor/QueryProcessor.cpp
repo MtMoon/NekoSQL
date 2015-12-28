@@ -756,6 +756,7 @@ bool QueryProcessor::ConditionFilter(const string& tableName, const vector<Field
 		{
 			indexManager->setIndex(tableName, indexInfo.indexName);
 			records = indexManager->searchKey(condi);
+			//cout << records.size() << endl;
 		}
 		else
 		{
