@@ -625,6 +625,9 @@ bool QueryProcessor::InsertRecord(const string& tableName, const vector<string>&
 			indexManager->insertRecord(condi, tempLP);
 		}	
 	}
+
+	delete []dataPairs;
+	delete []newDataPairs;
 	return true;
 }
 
@@ -1298,6 +1301,7 @@ string QueryProcessor::TransferCharacter(const string& str)
 	}
 	newStr[newIndex] = '\0';
 	string result(newStr);
+	delete []newStr;
 	return result;
 }
 

@@ -429,6 +429,7 @@ vector<LP> DataManager::searchRecordInPage(const char* tablename, const int page
 		if (RecordTool::hasSameSegVal(tb, d, condi, cmpType)) {
 			vec.push_back(LP(pageorder,i));
 		}
+		delete[] d.first;
 	}
 	return vec;
 }
