@@ -72,7 +72,7 @@ int main() {
 	fi->setDB("orderDB");
 	int type;
 	cin >> type;
-	if (type == 0 || type == 1)
+	if (type == 0 || type == 1 || type == 2)
 	{
 		fi->setType(type);
 		string fname;

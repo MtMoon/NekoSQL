@@ -82,7 +82,7 @@ bool FileInterface::setDB(const string& db)
 
 bool FileInterface::setType(int type_)
 {
-	if (type_ != 0 && type_ != 1)
+	if (type_ != 0 && type_ != 1 && type_ != 2)
 		return false;
 	type = type_;
 	return true;
@@ -184,6 +184,36 @@ bool FileInterface::processFile(const string& fname)
 		}
 
 
+	} else if (type == 2){
+		int flag = 0;
+		if (dbName.length() == 0) {
+			cout << "FileInterface:db not chosen." << endl;
+			return false;
+		}
+		string tempStr = sa->SysAnalyze("use "+dbName+";" , flag);
+		string line = "";
+		string cmd = "";
+		string cmdHead = "";
+		int count = 0;
+		int correct  = 0;
+		clock_t start_time=clock();
+		while (getline(fin,cmd) && getline(fin, line)) {
+			count++;
+			sa->CmdAnalyze(cmd, viewTable, hasView, sysStr, hasStr);
+			int num = atoi(line.c_str());
+			if (hasView && viewTable.second.size() == num) {
+				correct++;
+			} else {
+				cout << "_______________correct: " << num << " output: " << viewTable.second.size()  << " hasView: " << hasView << endl;
+			}
+			if (count%50 == 0) {
+				cout << "**************" << count << "***********" << endl;
+			}
+		}
+		clock_t end_time=clock();
+		cout << "running time: " << static_cast<double>(end_time-start_time)/CLOCKS_PER_SEC*1000<<"ms"<<endl;
+
+		cout << "total sql: " << count << " correct: " << correct << endl;
 	}
 	fin.clear();
 	fin.close();

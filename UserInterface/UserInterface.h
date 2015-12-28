@@ -9,6 +9,7 @@
 #include "../QueryProcessor/QueryProcessor.h"
 #include "../SynAnalyze/SynAnalyze.h"
 #include <string>
+#include <cmath>
 
 class ConsoleInterface
 {

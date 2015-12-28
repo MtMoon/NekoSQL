@@ -466,7 +466,7 @@ string SynAnalyze::SysAnalyze(const std::string& cstr, int & flag) {
 			}
 		}
 	}
-	cout << "#" << word[0] << "#" << word[1] << "#" << remainStr << endl;
+	//cout << "#" << word[0] << "#" << word[1] << "#" << remainStr << endl;
 	if (word[0] == "create" && word[1] == "table") { //单独处理建表
 		flag = -1;
 		int ans = createTBAnalyze(remainStr);
@@ -627,9 +627,9 @@ string SynAnalyze::SysAnalyze(const std::string& cstr, int & flag) {
 			indexinfo.fieldLen = 4;
 		}
 		indexinfo.legal = true;
-		cout << "lalala2" << endl;
+		//cout << "lalala2" << endl;
 		//im->setIndex(tableName, indexName);
-		cout << "lalala3" << endl;
+		//cout << "lalala3" << endl;
 		int ansFlag = im->createIndex(indexinfo);
 		if (ansFlag == 0) {
 			cout << "index " << indexName << " already exists!" << endl;

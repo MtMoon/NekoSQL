@@ -1,10 +1,400 @@
-select * from book where authors is null;
-select publisher_id,pages,id,title,authors from book where title <= 'Guerilla Games (Executioner)';
-select * from book where copies > 7907;
-select id,copies from book where authors = 'David Gifaldi';
-select * from book where pages <= 1710;
-select * from book where pages is not null;
-select * from book where publisher_id >= 100189;
+select copies,pages,authors,title from book where id >= 241875;
+8126
+select * from book where pages != 1425;
+49973
+select title,publisher_id,copies,pages from book where authors is null;
+1
+select title,copies from book where copies != 712;
+49989
+select authors,copies from book where title is null;
+0
+select * from book where id >= 229041;
+20960
+select * from book where id >= 237970;
+12031
+select copies,id,publisher_id,authors from book where authors = 'E.M. Beekman';
+1
+select id,copies from book where id < 244205;
+44204
 select * from book where authors is not null;
-select * from book where copies = 7612;
-select * from book where copies >= 2133;
+49999
+select * from book where copies = 580;
+7
+select authors,copies,title,id from book where title = 'Country Wife (New Mermaids)';
+1
+select * from book where copies is not null;
+50000
+select * from book where title is not null;
+50000
+select pages from book where pages <= 1669;
+16738
+select publisher_id,copies,title from book where title > 'Armageddon (Left Behind #11)';
+46635
+select pages,publisher_id,copies from book where title != 'Eine Frau von drei??ig Jahren.';
+49999
+select title from book where copies <= 424;
+2071
+select * from book where publisher_id >= 102121;
+28664
+select * from book where pages <= 1052;
+1334
+select title,id from book where publisher_id = 103438;
+16
+select authors,title from book where title < 'Charlotte Bronte and Her Circle.';
+6826
+select * from book where pages is not null;
+50000
+select title from book where title > 'Who Killed Harlowe Thrombey';
+1309
+select publisher_id,copies,authors from book where pages >= 2246;
+18964
+select * from book where publisher_id is not null;
+50000
+select pages,copies,id,publisher_id,authors from book where publisher_id is null;
+0
+select * from book where copies < 5771;
+28828
+select authors,publisher_id,title,id,pages from book where pages is null;
+0
+select * from book where pages > 2488;
+12897
+select * from book where id < 234804;
+34803
+select id,copies from book where id = 205435;
+1
+select * from book where authors is null;
+1
+select publisher_id,pages from book where publisher_id is not null;
+50000
+select * from book where title != 'France and French (Getting to Know)';
+49999
+select * from book where pages is null;
+0
+select copies,publisher_id from book where publisher_id > 101178;
+38236
+select id from book where authors is not null;
+49999
+select * from book where pages is null;
+0
+select * from book where authors < 'Pancho Vives';
+36751
+select * from book where copies = 4660;
+2
+select title,publisher_id,authors,id,pages from book where title = 'When the Circus Came to Town';
+1
+select id,publisher_id,copies from book where authors < 'Vine, Jr. Deloria';
+48224
+select id from book where title < 'Hatchet - Newbery Promo 99';
+16683
+select id,authors from book where id is not null;
+50000
+select id,copies,publisher_id from book where title < 'KG 200: The Force with No Face';
+20636
+select publisher_id,authors from book where publisher_id is null;
+0
+select * from book where publisher_id != 104052;
+49989
+select copies,id,pages,publisher_id,title from book where pages is null;
+0
+select title,id,authors,publisher_id from book where title != 'The fantastic art of Boris';
+49998
+select * from book where authors < 'MINISTER FAUST';
+30636
+select title,authors,copies,pages from book where id < 222319;
+22318
+select * from book where pages is null;
+0
+select * from book where publisher_id < 100076;
+765
+select title,publisher_id,authors from book where authors != 'David Delman';
+49998
+select authors,copies,pages,title,id from book where authors is null;
+1
+select * from book where title >= 'I Cant Be Good All the Time';
+31659
+select * from book where pages <= 2240;
+30902
+select * from book where copies is null;
+0
+select * from book where copies > 7069;
+14604
+select * from book where publisher_id > 102041;
+29443
+select * from book where id < 210239;
+10238
+select authors,title from book where id is null;
+0
+select * from book where title > 'Death Is the Inheritance';
+40529
+select * from book where pages >= 1406;
+39943
+select * from book where authors >= 'Rosemary Verey';
+7875
+select id,pages,publisher_id,copies from book where copies is null;
+0
+select * from book where copies is not null;
+50000
+select * from book where title <= 'Weird Women, Wired Women';
+48045
+select id from book where pages <= 1492;
+12263
+select title,pages from book where title > 'King Solomons Mines (Tor Classics)';
+29103
+select publisher_id,authors,id,copies from book where id >= 241506;
+8495
+select id,publisher_id,pages,title,copies from book where authors is null;
+1
+select * from book where id <= 231329;
+31329
+select publisher_id,pages from book where publisher_id <= 103401;
+34160
+select copies from book where publisher_id >= 100071;
+49284
+select * from book where copies < 4438;
+22074
+select * from book where authors = 'Lou Kassem';
+1
+select * from book where copies = 1075;
+10
+select authors,copies from book where authors < 'David Shannon';
+10503
+select id,title,authors,copies,publisher_id from book where pages is not null;
+50000
+select title,authors,publisher_id from book where title > 'The Legend of Mammy Jane';
+9539
+select * from book where title = 'Kyle Can, Can You? (Puzzle Place)';
+1
+select authors,copies,title,publisher_id,pages from book where copies != 6504;
+49994
+select * from book where publisher_id > 100463;
+45394
+select authors,publisher_id from book where title < 'Rand McNally Pocket World Atlas';
+30524
+select publisher_id,authors,copies,pages from book where copies <= 4352;
+21659
+select * from book where title >= 'Praying in the Catholic Tradition';
+20195
+select * from book where authors != 'Danelle Harmon';
+49998
+select * from book where title = 'LEARNING TO LOVE YOURSELF';
+1
+select publisher_id from book where id >= 206820;
+43181
+select * from book where authors is null;
+1
+select * from book where id = 240429;
+1
+select * from book where authors < 'Monica Fulong';
+34799
+select title,id,publisher_id,pages,authors from book where id = 236279;
+1
+select publisher_id,pages from book where id <= 242120;
+42120
+select title,copies,id,authors from book where publisher_id = 101278;
+10
+select pages from book where authors is not null;
+49999
+select id from book where pages is not null;
+50000
+select * from book where copies > 3406;
+33042
+select authors from book where id != 200346;
+49999
+select publisher_id,copies from book where authors >= 'Christine LHeureux';
+42085
+select pages,id,authors from book where pages != 2382;
+49970
+select copies,authors,pages,publisher_id from book where pages is not null;
+50000
+select * from book where copies is null;
+0
+select * from book where copies != 4;
+49995
+select pages,id from book where publisher_id != 102726;
+49988
+select * from book where title = 'Offer of Proof : A Novel';
+1
+select authors,id from book where title <= 'The face behind the face: Poems';
+44983
+select copies,authors,publisher_id,title from book where title > 'Wann bitte findet das Leben statt?';
+2238
+select * from book where publisher_id < 100910;
+9062
+select * from book where authors > 'Jarvis';
+28294
+select * from book where title >= 'Murphy Must Have Been a Mother';
+23718
+select * from book where id > 214997;
+35003
+select * from book where title > 'Late Innings: A Baseball Companion';
+28153
+select * from book where title > 'Tales of Terror and the Supernatural';
+14665
+select id,copies,publisher_id from book where title is not null;
+50000
+select id,title,publisher_id,authors,pages from book where publisher_id <= 100470;
+4670
+select authors,publisher_id,title,pages from book where id is not null;
+50000
+select title,authors from book where pages <= 1496;
+12366
+select * from book where publisher_id != 104483;
+49979
+select publisher_id,id,authors from book where id >= 246177;
+3824
+select * from book where title > 'Mary Had a Little Lamb (Blue Ribbon)';
+25406
+select title,publisher_id,id,copies from book where pages is null;
+0
+select authors from book where pages < 2111;
+27698
+select title,authors,publisher_id,id,copies from book where publisher_id != 102370;
+49991
+select copies,title from book where authors is null;
+1
+select title,id,pages,copies from book where title != 'A Passionate Magic (Heartspell)';
+49999
+select title,id,authors,pages from book where pages < 1443;
+10978
+select copies,authors,title,pages from book where title != 'The Empire Strikes Back (Star Wars)';
+49999
+select * from book where copies is null;
+0
+select * from book where id = 244644;
+1
+select authors,publisher_id from book where title <= 'The Age of Innocence (Everyman S.)';
+35975
+select pages,title,id,publisher_id from book where id <= 238580;
+38580
+select * from book where copies <= 8573;
+42898
+select copies,authors from book where id is null;
+0
+select title,pages,id,copies from book where title != 'Jimmy Spoon and the Pony Express';
+49999
+select copies from book where copies is null;
+0
+select publisher_id,pages from book where publisher_id >= 102287;
+27025
+select title from book where title = 'Conan and the Treasure of Python';
+1
+select id from book where id < 221137;
+21136
+select copies from book where pages > 1019;
+49525
+select publisher_id,pages,title,id,copies from book where copies < 33;
+153
+select pages from book where id >= 208991;
+41010
+select * from book where id is null;
+0
+select * from book where pages < 1003;
+82
+select copies,title from book where title <= 'Nols Cookery (NOLS Library)';
+27304
+select publisher_id,pages,id,copies from book where publisher_id <= 103374;
+33899
+select * from book where authors = 'Claudia Graham';
+1
+select * from book where pages > 2102;
+22503
+select publisher_id,id from book where copies > 2939;
+35427
+select copies,id,authors,pages,title from book where copies >= 3726;
+31480
+select authors from book where pages < 1160;
+4016
+select copies,title,publisher_id,pages,id from book where publisher_id > 104883;
+1138
+select * from book where id is not null;
+50000
+select * from book where copies = 3057;
+8
+select pages,title from book where title > 'The Murder Room : A Novel (Vintage)';
+8662
+select * from book where title is not null;
+50000
+select * from book where authors is null;
+1
+select title,pages,id,publisher_id,authors from book where authors <= 'Luanshya Greer';
+30018
+select * from book where publisher_id <= 100325;
+3249
+select * from book where title != 'To the Poles (Without a Beard)';
+49999
+select title,id from book where copies is null;
+0
+select pages,copies from book where authors != 'Paul Sloane';
+49998
+select * from book where id != 205345;
+49999
+select publisher_id,title,authors from book where pages != 2560;
+49963
+select * from book where copies <= 7426;
+37197
+select * from book where copies is not null;
+50000
+select authors,id,pages,copies,title from book where pages = 2707;
+36
+select publisher_id,pages from book where authors > 'Nicholas Henry';
+14275
+select * from book where title > 'The Tales of an Athletic Supporter';
+6249
+select publisher_id from book where title is not null;
+50000
+select * from book where copies is null;
+0
+select id,authors,title,pages from book where title < 'Max Und Moritz Auf Englisch';
+24735
+select * from book where pages < 2808;
+45143
+select publisher_id from book where copies >= 1706;
+41715
+select * from book where id is null;
+0
+select copies,publisher_id,title,authors,pages from book where title != 'The Love Poems of John Donne';
+49999
+select * from book where id != 243154;
+49999
+select authors,copies,title,id,publisher_id from book where pages != 2342;
+49972
+select pages,publisher_id,title from book where id >= 209789;
+40212
+select title from book where title = 'Small World: An Academic Romance';
+2
+select authors,copies from book where authors > 'Hans Karl Rupp';
+32088
+select publisher_id,id,copies from book where authors >= 'Marty M. Engle';
+17564
+select publisher_id,pages,copies,title from book where publisher_id != 104523;
+49989
+select pages,copies,publisher_id,title from book where authors is null;
+1
+select publisher_id,pages,title,id from book where title != 'Die Farm in den gr??nen Bergen.';
+49999
+select * from book where title is not null;
+50000
+select copies,publisher_id,pages,authors from book where copies <= 9393;
+47006
+select publisher_id,copies,pages from book where authors is not null;
+49999
+select id,authors from book where publisher_id <= 103715;
+37247
+select authors,copies,publisher_id,pages,id from book where pages < 2797;
+44886
+select * from book where authors >= 'Kim Johnson Gross';
+22569
+select copies from book where title <= 'Rolling Stone: The Photographs';
+31359
+select pages,id,title,copies from book where title < 'Journey: From One Life to Another';
+20424
+select copies,title,publisher_id,pages from book where title > 'Better Than Running at Night';
+45277
+select authors,title from book where publisher_id < 103863;
+38669
+select pages,title from book where id < 246510;
+46509
+select * from book where title != 'The Renaissance: A Short History';
+49999
+select * from book where authors != 'Stewart P. Evans';
+49998

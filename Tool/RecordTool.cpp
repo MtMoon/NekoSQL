@@ -181,8 +181,8 @@ bool RecordTool::hasSameSegVal(TableInfo& tb, Data record, ConDP condi, int cmpT
 	bool ans = false;
 
 	if ((cmpType != 3 && fieldValue.isnull) || (condi.type != fieldValue.type)) {
-		printf("condi.type %d,  fieldValue.type %d \ n", condi.type, fieldValue.type);
-		printf("is null %d \n", fieldValue.isnull);
+		//printf("condi.type %d,  fieldValue.type %d \ n", condi.type, fieldValue.type);
+		//printf("is null %d \n", fieldValue.isnull);
 		return ans;
 	}
 	//printf("lalal \n");

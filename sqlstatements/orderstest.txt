@@ -1,0 +1,400 @@
+select * from orders where book_id > 217325;
+7314
+select customer_id from orders where customer_id is null;
+0
+select customer_id,book_id from orders where customer_id = 302320;
+7
+select * from orders where quantity >= 3;
+17086
+select quantity from orders where customer_id is null;
+0
+select * from orders where customer_id >= 305166;
+6170
+select * from orders where customer_id != 305391;
+23526
+select * from orders where quantity != 2;
+21462
+select book_id,customer_id from orders where quantity is not null;
+23530
+select * from orders where customer_id != 300506;
+23526
+select * from orders where customer_id >= 305699;
+4356
+select * from orders where book_id > 202720;
+20952
+select * from orders where customer_id >= 304248;
+9239
+select * from orders where customer_id != 304387;
+23523
+select quantity from orders where customer_id is null;
+0
+select quantity,customer_id from orders where book_id < 217407;
+16289
+select * from orders where customer_id > 302806;
+14069
+select book_id from orders where book_id = 224217;
+3
+select * from orders where quantity > 7;
+6434
+select * from orders where customer_id >= 303826;
+10699
+select book_id from orders where quantity <= 2;
+6444
+select customer_id,quantity from orders where customer_id != 305681;
+23526
+select * from orders where book_id is null;
+0
+select book_id from orders where quantity != 5;
+21438
+select * from orders where quantity = 8;
+2196
+select quantity,customer_id from orders where quantity <= 4;
+10747
+select quantity,customer_id from orders where quantity <= 7;
+17096
+select book_id,customer_id from orders where customer_id != 300181;
+23527
+select book_id,customer_id from orders where book_id > 220883;
+3924
+select customer_id from orders where book_id <= 203555;
+3355
+select book_id from orders where book_id is not null;
+23530
+select customer_id from orders where quantity != 4;
+21332
+select * from orders where quantity is null;
+0
+select * from orders where quantity is not null;
+23530
+select book_id,customer_id from orders where quantity <= 5;
+12839
+select book_id,quantity from orders where quantity < 4;
+8549
+select book_id from orders where quantity > 1;
+19154
+select customer_id,book_id from orders where book_id <= 208218;
+7690
+select customer_id from orders where customer_id != 304637;
+23525
+select quantity from orders where quantity is not null;
+23530
+select * from orders where book_id > 214897;
+9600
+select * from orders where customer_id <= 304163;
+13988
+select quantity,customer_id from orders where book_id <= 223350;
+21982
+select * from orders where customer_id > 301923;
+17007
+select * from orders where book_id < 219843;
+18581
+select * from orders where quantity != 2;
+21462
+select customer_id,book_id from orders where customer_id <= 304863;
+16359
+select quantity,customer_id from orders where book_id is null;
+0
+select * from orders where customer_id >= 302599;
+14761
+select customer_id,book_id from orders where customer_id is not null;
+23530
+select * from orders where book_id < 216737;
+15667
+select quantity,customer_id from orders where book_id <= 224181;
+22731
+select quantity,customer_id from orders where quantity = 10;
+2118
+select customer_id from orders where book_id is not null;
+23530
+select * from orders where book_id >= 205580;
+18246
+select * from orders where customer_id > 302986;
+13498
+select quantity,book_id from orders where customer_id = 306042;
+3
+select quantity from orders where customer_id < 303870;
+12966
+select customer_id from orders where quantity != 2;
+21462
+select * from orders where book_id <= 224396;
+22957
+select * from orders where quantity < 7;
+14950
+select customer_id from orders where quantity > 4;
+12783
+select book_id from orders where quantity is not null;
+23530
+select * from orders where quantity <= 9;
+21412
+select customer_id,book_id from orders where quantity is not null;
+23530
+select book_id from orders where customer_id > 303425;
+12036
+select * from orders where quantity > 8;
+4238
+select customer_id from orders where customer_id > 300573;
+21562
+select customer_id from orders where customer_id >= 301852;
+17216
+select * from orders where customer_id is not null;
+23530
+select * from orders where customer_id = 304979;
+5
+select quantity from orders where customer_id <= 305199;
+17477
+select * from orders where quantity <= 4;
+10747
+select book_id from orders where customer_id is null;
+0
+select * from orders where quantity >= 7;
+8580
+select * from orders where quantity = 4;
+2198
+select * from orders where quantity is not null;
+23530
+select quantity from orders where quantity is not null;
+23530
+select * from orders where customer_id >= 305790;
+4036
+select quantity,book_id from orders where book_id <= 221459;
+20187
+select customer_id,quantity from orders where quantity is null;
+0
+select * from orders where quantity != 8;
+21334
+select quantity,book_id from orders where book_id != 201397;
+23527
+select customer_id,quantity from orders where quantity <= 2;
+6444
+select * from orders where quantity < 4;
+8549
+select quantity,customer_id from orders where quantity is not null;
+23530
+select quantity from orders where customer_id != 302395;
+23527
+select * from orders where quantity is null;
+0
+select * from orders where quantity >= 5;
+12783
+select * from orders where quantity is not null;
+23530
+select book_id,quantity from orders where quantity > 0;
+21303
+select * from orders where quantity < 6;
+12839
+select * from orders where quantity >= 5;
+12783
+select * from orders where quantity < 4;
+8549
+select quantity,customer_id from orders where quantity >= 1;
+21303
+select * from orders where customer_id <= 304304;
+14483
+select quantity from orders where customer_id is not null;
+23530
+select quantity from orders where quantity < 5;
+10747
+select quantity from orders where book_id <= 201859;
+1749
+select customer_id from orders where quantity < 6;
+12839
+select customer_id,quantity from orders where quantity < 3;
+6444
+select * from orders where quantity = 8;
+2196
+select * from orders where quantity >= 1;
+21303
+select * from orders where customer_id <= 302296;
+7734
+select quantity,book_id from orders where customer_id < 304804;
+16173
+select book_id,customer_id from orders where quantity > 6;
+8580
+select quantity,customer_id from orders where book_id >= 204688;
+19087
+select * from orders where book_id != 209332;
+23529
+select * from orders where customer_id is not null;
+23530
+select quantity from orders where book_id > 208712;
+15373
+select customer_id,quantity from orders where book_id < 203223;
+3026
+select book_id from orders where customer_id != 300409;
+23528
+select book_id from orders where book_id is not null;
+23530
+select quantity,customer_id from orders where quantity = 3;
+2105
+select * from orders where customer_id > 303036;
+13342
+select * from orders where book_id <= 215863;
+14852
+select * from orders where book_id >= 217517;
+7121
+select customer_id,book_id from orders where quantity is null;
+0
+select customer_id from orders where book_id <= 214037;
+13144
+select * from orders where book_id >= 206903;
+17021
+select * from orders where quantity is not null;
+23530
+select * from orders where quantity != 5;
+21438
+select * from orders where customer_id is null;
+0
+select * from orders where book_id is not null;
+23530
+select * from orders where quantity = 2;
+2068
+select * from orders where book_id != 205221;
+23528
+select book_id from orders where book_id != 207431;
+23529
+select * from orders where book_id >= 203196;
+20524
+select quantity,book_id from orders where quantity <= 10;
+23530
+select quantity from orders where customer_id != 301869;
+23526
+select * from orders where customer_id is null;
+0
+select customer_id from orders where customer_id > 300397;
+22159
+select quantity,book_id from orders where book_id > 221884;
+2932
+select book_id from orders where customer_id < 302471;
+8316
+select * from orders where book_id is null;
+0
+select customer_id from orders where customer_id < 302895;
+9739
+select customer_id,book_id from orders where quantity is not null;
+23530
+select * from orders where book_id is null;
+0
+select quantity,book_id from orders where quantity >= 6;
+10691
+select customer_id from orders where customer_id <= 305911;
+19900
+select * from orders where book_id is not null;
+23530
+select * from orders where book_id != 217423;
+23529
+select customer_id,quantity from orders where customer_id is null;
+0
+select * from orders where customer_id >= 300752;
+20974
+select book_id,quantity from orders where book_id = 212790;
+5
+select * from orders where book_id <= 213408;
+12572
+select book_id,customer_id from orders where book_id = 206226;
+3
+select book_id from orders where customer_id != 303534;
+23525
+select * from orders where quantity is not null;
+23530
+select * from orders where book_id != 221430;
+23529
+select * from orders where book_id != 223622;
+23528
+select * from orders where customer_id != 300741;
+23526
+select * from orders where customer_id >= 300360;
+22308
+select * from orders where quantity < 5;
+10747
+select customer_id,book_id from orders where quantity is null;
+0
+select quantity,customer_id from orders where book_id < 223857;
+22437
+select * from orders where book_id is null;
+0
+select * from orders where book_id != 220090;
+23528
+select customer_id,book_id from orders where quantity = 8;
+2196
+select * from orders where customer_id = 303181;
+4
+select * from orders where quantity != 1;
+21381
+select quantity,book_id from orders where book_id >= 223381;
+1523
+select * from orders where book_id < 206115;
+5804
+select * from orders where quantity > 2;
+17086
+select quantity from orders where customer_id is null;
+0
+select book_id from orders where customer_id != 306505;
+23525
+select * from orders where customer_id is null;
+0
+select * from orders where quantity is not null;
+23530
+select quantity,customer_id from orders where customer_id is null;
+0
+select * from orders where customer_id is not null;
+23530
+select customer_id,book_id from orders where book_id < 201361;
+1263
+select quantity from orders where customer_id >= 306051;
+3188
+select book_id from orders where book_id < 216159;
+15115
+select quantity from orders where quantity = 7;
+2146
+select * from orders where book_id != 216117;
+23528
+select customer_id from orders where quantity != 1;
+21381
+select customer_id from orders where quantity is not null;
+23530
+select customer_id from orders where quantity is not null;
+23530
+select * from orders where quantity is null;
+0
+select quantity from orders where customer_id < 304579;
+15412
+select * from orders where book_id >= 221976;
+2857
+select customer_id from orders where book_id is null;
+0
+select customer_id,book_id from orders where customer_id > 303534;
+11642
+select customer_id from orders where customer_id = 304965;
+2
+select quantity,book_id from orders where customer_id >= 303278;
+12533
+select customer_id,book_id from orders where customer_id != 302476;
+23524
+select * from orders where quantity <= 10;
+23530
+select customer_id from orders where quantity != 7;
+21384
+select customer_id from orders where book_id is not null;
+23530
+select * from orders where customer_id = 301278;
+5
+select customer_id,book_id from orders where quantity > 9;
+2118
+select customer_id from orders where customer_id <= 303861;
+12948
+select * from orders where customer_id = 303130;
+2
+select customer_id from orders where customer_id > 302009;
+16726
+select * from orders where quantity <= 7;
+17096
+select * from orders where book_id is not null;
+23530
+select * from orders where customer_id < 304317;
+14530
+select * from orders where customer_id < 300388;
+1322
+select * from orders where customer_id > 302191;
+16129
+select book_id,quantity from orders where book_id >= 216982;
+7629

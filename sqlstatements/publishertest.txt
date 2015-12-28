@@ -1,0 +1,400 @@
+select * from publisher where name > 'Insiders Guide (NC)';
+2849
+select state from publisher where name >= 'Institute for Inner Studies';
+2835
+select id from publisher where name != 'Sweet &amp; Maxwell Ltd';
+4999
+select * from publisher where state is not null;
+5000
+select name from publisher where state is not null;
+5000
+select * from publisher where id = 100564;
+1
+select * from publisher where name = 'Pacific Northwest Books';
+1
+select * from publisher where name = 'Biblioteca universale Rizzoli';
+1
+select name from publisher where name is null;
+0
+select * from publisher where name < 'Pomegranate Communications';
+3445
+select * from publisher where id is not null;
+5000
+select * from publisher where state is null;
+0
+select name from publisher where state < 'GA';
+2526
+select state from publisher where name = 'Chordant Distribution';
+1
+select state from publisher where state = 'CA';
+2526
+select state from publisher where name != 'Reynolds Publishing Company';
+4999
+select id,state from publisher where id = 102748;
+1
+select * from publisher where id is null;
+0
+select state,id from publisher where name < 'Hurst &amp; Blackett';
+2082
+select * from publisher where state != 'GA';
+2526
+select * from publisher where state > 'GA';
+0
+select * from publisher where state >= 'CA';
+5000
+select * from publisher where state = 'CA';
+2526
+select state from publisher where state <= 'CA';
+2526
+select name,state from publisher where name <= 'Zebra/pinnacle Books';
+4968
+select * from publisher where state < 'CA';
+0
+select state from publisher where name >= 'Highlights for Children';
+3004
+select state,name from publisher where name is null;
+0
+select * from publisher where id is not null;
+5000
+select * from publisher where id is null;
+0
+select * from publisher where state >= 'GA';
+2474
+select id from publisher where state >= 'GA';
+2474
+select name from publisher where name >= 'Arkham House Publishers';
+4735
+select name,state from publisher where id is not null;
+5000
+select state,id from publisher where state != 'CA';
+2474
+select id from publisher where name > 'Worldwide Church Of God';
+65
+select name from publisher where state != 'GA';
+2526
+select * from publisher where id > 100542;
+4458
+select * from publisher where name = 'Harold Shaw Publications';
+1
+select name,id from publisher where id >= 102547;
+2454
+select * from publisher where state is null;
+0
+select name,state from publisher where id > 103586;
+1414
+select * from publisher where name is not null;
+5000
+select * from publisher where name = 'Brookside Publishing';
+1
+select * from publisher where name is not null;
+5000
+select * from publisher where name is not null;
+5000
+select state,id from publisher where state > 'GA';
+0
+select * from publisher where id >= 101621;
+3380
+select id from publisher where name is not null;
+5000
+select * from publisher where id = 104164;
+1
+select name from publisher where id < 102213;
+2212
+select * from publisher where id <= 100443;
+443
+select state,id from publisher where id is null;
+0
+select name,state from publisher where id > 103100;
+1900
+select * from publisher where id = 101332;
+1
+select * from publisher where id is null;
+0
+select id,state from publisher where name is not null;
+5000
+select id from publisher where id = 103226;
+1
+select * from publisher where id is null;
+0
+select * from publisher where name is null;
+0
+select * from publisher where state < 'GA';
+2526
+select state from publisher where id = 104823;
+1
+select state from publisher where id is null;
+0
+select name from publisher where name < 'Editorial Edaf, S.A.';
+1347
+select * from publisher where id <= 104670;
+4670
+select name from publisher where name < 'Federal Street Press';
+1495
+select state,name from publisher where name >= 'Taylor &amp; Francis Inc';
+729
+select * from publisher where name > 'Brunner/Mazel Publisher';
+4343
+select state,id from publisher where name > 'Chronimed Publishing';
+4142
+select * from publisher where state = 'GA';
+2474
+select state from publisher where id != 102695;
+4999
+select name from publisher where state <= 'CA';
+2526
+select id,name from publisher where state > 'CA';
+2474
+select state from publisher where name < 'Church Council of Greater';
+858
+select * from publisher where state >= 'GA';
+2474
+select id,state from publisher where id <= 103329;
+3329
+select * from publisher where name > 'Paint Box Studio Press';
+1764
+select * from publisher where name = 'J Appleseed &amp; Co';
+1
+select state from publisher where state != 'GA';
+2526
+select * from publisher where state <= 'CA';
+2526
+select id,name from publisher where state is null;
+0
+select * from publisher where state is null;
+0
+select id,name from publisher where id >= 100664;
+4337
+select state,id from publisher where name = 'Peter Lang Publishing';
+1
+select * from publisher where id is not null;
+5000
+select id,name from publisher where id is null;
+0
+select * from publisher where state = 'GA';
+2474
+select state,id from publisher where state > 'GA';
+0
+select name,id from publisher where state <= 'CA';
+2526
+select * from publisher where name >= 'College Press Pub. Co';
+4105
+select * from publisher where id < 101137;
+1136
+select state,name from publisher where id < 102675;
+2674
+select state from publisher where id != 102293;
+4999
+select id,name from publisher where state > 'GA';
+0
+select id,state from publisher where id < 101475;
+1474
+select * from publisher where id is not null;
+5000
+select * from publisher where state = 'GA';
+2474
+select * from publisher where id <= 101139;
+1139
+select name from publisher where name < 'Paraview Pocket Books';
+3273
+select name from publisher where name >= 'W. B. Eerdmans Pub. Co';
+295
+select name,id from publisher where name <= 'Namaste Publications';
+2942
+select id from publisher where name is not null;
+5000
+select * from publisher where name = 'Pinter &amp; Martin';
+1
+select state,name from publisher where state != 'GA';
+2526
+select * from publisher where name >= 'Documentation fran?aise';
+3812
+select id,state from publisher where name = 'Ashgrove Publishing';
+1
+select id from publisher where name >= 'East European Monographs';
+3735
+select * from publisher where name is not null;
+5000
+select * from publisher where state is null;
+0
+select id,state from publisher where state > 'CA';
+2474
+select * from publisher where state is not null;
+5000
+select * from publisher where id is not null;
+5000
+select state,id from publisher where state <= 'GA';
+5000
+select name from publisher where state = 'GA';
+2474
+select id from publisher where id is not null;
+5000
+select * from publisher where id is null;
+0
+select * from publisher where state < 'GA';
+2526
+select * from publisher where state is null;
+0
+select * from publisher where name is null;
+0
+select * from publisher where id < 100581;
+580
+select * from publisher where id <= 101461;
+1461
+select * from publisher where state > 'CA';
+2474
+select * from publisher where name is null;
+0
+select * from publisher where state != 'CA';
+2474
+select name,id from publisher where name != 'Farming Press Limited';
+4999
+select state from publisher where id is not null;
+5000
+select id,state from publisher where name is not null;
+5000
+select * from publisher where id > 104694;
+306
+select id,state from publisher where state > 'CA';
+2474
+select * from publisher where state != 'GA';
+2526
+select id,name from publisher where state <= 'GA';
+5000
+select id,name from publisher where name >= 'Robert Bentley Publishers';
+1257
+select * from publisher where state = 'GA';
+2474
+select * from publisher where name <= 'Princeton Architectural Press';
+3493
+select * from publisher where name = 'Scholastic Book Services';
+1
+select name from publisher where state < 'GA';
+2526
+select * from publisher where id < 103275;
+3274
+select * from publisher where name is not null;
+5000
+select id,state from publisher where state is null;
+0
+select state,name from publisher where state is not null;
+5000
+select * from publisher where id is not null;
+5000
+select * from publisher where id < 104890;
+4889
+select * from publisher where state = 'CA';
+2526
+select name from publisher where name = 'Vision Works Publishing';
+1
+select * from publisher where id <= 102493;
+2493
+select * from publisher where name >= 'Xerox Education Publications';
+46
+select * from publisher where name < 'Monday Morning Books';
+2868
+select id from publisher where name >= 'Books for Young Readers';
+4419
+select * from publisher where name = 'La Leche League International';
+1
+select * from publisher where name = 'American Bible Society';
+1
+select * from publisher where state is null;
+0
+select * from publisher where name is not null;
+5000
+select state,id from publisher where name is not null;
+5000
+select name,state from publisher where name < 'Assocs for Youth Development';
+293
+select name from publisher where id >= 101938;
+3063
+select name from publisher where id is not null;
+5000
+select id from publisher where id <= 104455;
+4455
+select * from publisher where id = 102102;
+1
+select * from publisher where state <= 'GA';
+5000
+select * from publisher where name is null;
+0
+select * from publisher where state is null;
+0
+select name,state from publisher where state is null;
+0
+select * from publisher where name = 'School Around Us Press';
+1
+select * from publisher where state = 'GA';
+2474
+select * from publisher where state > 'CA';
+2474
+select * from publisher where state >= 'CA';
+5000
+select name from publisher where state >= 'GA';
+2474
+select * from publisher where id != 104588;
+4999
+select name from publisher where id is not null;
+5000
+select * from publisher where name is null;
+0
+select * from publisher where state != 'GA';
+2526
+select * from publisher where state < 'CA';
+0
+select name from publisher where name < 'Book Depot Remainders';
+566
+select * from publisher where state >= 'CA';
+5000
+select * from publisher where id != 101797;
+4999
+select state,name from publisher where id is null;
+0
+select id from publisher where id < 101945;
+1944
+select * from publisher where name >= 'Helwig Industries Llc';
+3027
+select id,state from publisher where id = 101804;
+1
+select * from publisher where id < 101677;
+1676
+select * from publisher where state > 'CA';
+2474
+select * from publisher where name <= 'InnerCircle Publishing';
+2149
+select * from publisher where id = 102891;
+1
+select name from publisher where state is null;
+0
+select state from publisher where name is null;
+0
+select * from publisher where name >= 'W.C. Brown Publishers';
+285
+select id from publisher where name < 'Small Press Distribution';
+4037
+select name,id from publisher where id = 103868;
+1
+select name from publisher where name >= 'Tate Gallery Publications';
+735
+select state,id from publisher where name > 'Trafford Publishing';
+565
+select * from publisher where name > 'Christian Medical Society';
+4151
+select * from publisher where name <= 'American Business Visions';
+184
+select name,state from publisher where state != 'GA';
+2526
+select * from publisher where state >= 'GA';
+2474
+select * from publisher where state >= 'GA';
+2474
+select * from publisher where name < 'Federal Publications';
+1494
+select * from publisher where state > 'CA';
+2474
+select * from publisher where state < 'GA';
+2526
+select state from publisher where id is not null;
+5000
+select state,name from publisher where id >= 103474;
+1527

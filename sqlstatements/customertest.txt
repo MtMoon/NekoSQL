@@ -1,0 +1,400 @@
+select * from customer where name != 'EMMIE BARRA';
+6999
+select gender from customer where name = 'ZELDA CRAIN';
+1
+select gender,id from customer where id != 304737;
+6999
+select name,gender from customer where name is null;
+0
+select gender,name from customer where name > 'STANFORD MOSKOWITZ';
+821
+select * from customer where id >= 304439;
+2562
+select gender,name from customer where gender < 'M';
+4163
+select name,id from customer where gender < 'F';
+0
+select * from customer where gender <= 'F';
+4163
+select * from customer where name is null;
+0
+select gender,name from customer where id is not null;
+7000
+select * from customer where gender >= 'M';
+2837
+select * from customer where gender = 'M';
+2837
+select * from customer where id <= 301844;
+1844
+select name from customer where id < 301529;
+1528
+select name,gender from customer where name = 'DELMER ROEHL';
+1
+select * from customer where name < 'CELINDA ELLISON';
+1076
+select gender from customer where name < 'PRINCE HALLETT';
+5333
+select * from customer where id is not null;
+7000
+select * from customer where gender >= 'F';
+7000
+select gender from customer where id is null;
+0
+select name from customer where gender is null;
+0
+select gender,name from customer where name > 'BOB SHRYOCK';
+6297
+select name,gender from customer where name > 'TAMMARA FILES';
+719
+select gender,id from customer where gender <= 'F';
+4163
+select id from customer where id <= 306359;
+6359
+select id,name from customer where name < 'GUSTAVO OUTLAW';
+2697
+select id,gender from customer where gender is not null;
+7000
+select id from customer where gender = 'M';
+2837
+select * from customer where gender is null;
+0
+select name,id from customer where name < 'MITCHEL CURTO';
+4827
+select * from customer where id is not null;
+7000
+select * from customer where id is null;
+0
+select * from customer where id is not null;
+7000
+select id,gender from customer where id is null;
+0
+select name from customer where id != 301651;
+6999
+select * from customer where gender is not null;
+7000
+select id,gender from customer where name <= 'DARRYL LACH';
+1591
+select name,id from customer where gender >= 'F';
+7000
+select gender from customer where gender >= 'F';
+7000
+select name,gender from customer where name > 'CLIFFORD MOHAMMED';
+5687
+select * from customer where id is not null;
+7000
+select * from customer where name >= 'FABIAN BROGDEN';
+4691
+select * from customer where gender is null;
+0
+select * from customer where id <= 305314;
+5314
+select gender from customer where name is null;
+0
+select * from customer where name >= 'ANTON CALLE';
+6641
+select * from customer where id is null;
+0
+select * from customer where gender is not null;
+7000
+select * from customer where id is not null;
+7000
+select * from customer where name = 'HILMA SALOMON';
+1
+select name,gender from customer where gender != 'F';
+2837
+select name from customer where name > 'JERAMY STATLER';
+3759
+select * from customer where id = 300050;
+1
+select * from customer where id >= 303932;
+3069
+select * from customer where id >= 303310;
+3691
+select id,name from customer where gender < 'M';
+4163
+select id from customer where gender >= 'F';
+7000
+select * from customer where gender > 'M';
+0
+select gender from customer where gender > 'M';
+0
+select id from customer where gender = 'F';
+4163
+select name,gender from customer where name > 'CEDRIC DOSSANTOS';
+5939
+select id,gender from customer where name = 'BEAULAH GREMILLION';
+1
+select * from customer where name = 'VICENTA KINCHELOE';
+1
+select gender,id from customer where gender is null;
+0
+select * from customer where gender > 'F';
+2837
+select gender,name from customer where name > 'HEATHER BAX';
+4230
+select id,gender from customer where id != 306535;
+6999
+select name from customer where gender != 'F';
+2837
+select gender from customer where id >= 300862;
+6139
+select name from customer where id <= 304376;
+4376
+select * from customer where name >= 'ENOCH KAMMER';
+4812
+select gender,id from customer where name <= 'SHAD COHAN';
+5923
+select id,name from customer where name >= 'LAZARO RIDGLEY';
+3027
+select gender from customer where gender != 'F';
+2837
+select * from customer where gender = 'M';
+2837
+select name from customer where name < 'LAVETTE VAILLANCOURT';
+3941
+select * from customer where gender > 'M';
+0
+select * from customer where name is null;
+0
+select * from customer where name > 'KARISSA LAMBERTH';
+3449
+select name,id from customer where gender < 'M';
+4163
+select * from customer where id > 300027;
+6973
+select id from customer where gender is null;
+0
+select id from customer where id != 303634;
+6999
+select * from customer where name is not null;
+7000
+select id,name from customer where name <= 'ERNESTO BLACKWOOD';
+2228
+select * from customer where gender = 'F';
+4163
+select name,gender from customer where gender != 'M';
+4163
+select * from customer where gender >= 'M';
+2837
+select gender from customer where id = 300993;
+1
+select name from customer where name <= 'ROY SCHANK';
+5733
+select * from customer where gender = 'M';
+2837
+select name,gender from customer where gender > 'M';
+0
+select * from customer where gender <= 'M';
+7000
+select name from customer where id <= 301610;
+1610
+select * from customer where name is not null;
+7000
+select gender,id from customer where gender = 'M';
+2837
+select * from customer where id < 301285;
+1284
+select * from customer where id is not null;
+7000
+select * from customer where name > 'HOWARD OXLEY';
+4132
+select * from customer where gender = 'F';
+4163
+select gender from customer where name is null;
+0
+select * from customer where id is not null;
+7000
+select id from customer where name < 'TELMA HENSLEY';
+6322
+select * from customer where gender <= 'F';
+4163
+select id,gender from customer where name <= 'LAWERENCE DELCAMBRE';
+3959
+select gender from customer where name is not null;
+7000
+select id,name from customer where id < 303985;
+3984
+select * from customer where id > 303557;
+3443
+select name,gender from customer where name is not null;
+7000
+select gender,name from customer where name < 'THADDEUS BAKKEN';
+6366
+select name from customer where id is not null;
+7000
+select * from customer where gender <= 'F';
+4163
+select * from customer where name <= 'KAYLEIGH COON';
+3624
+select * from customer where id != 300045;
+6999
+select * from customer where gender < 'M';
+4163
+select name from customer where id is not null;
+7000
+select name,id from customer where name <= 'LAVERNE HOGAN';
+3938
+select name from customer where name != 'BURL YORKE';
+6999
+select name,gender from customer where id is not null;
+7000
+select name,id from customer where id is not null;
+7000
+select id from customer where id >= 304274;
+2727
+select * from customer where gender = 'M';
+2837
+select id from customer where name < 'KAREEM MASSENGILL';
+3541
+select * from customer where name >= 'POK JAIME';
+1682
+select id,gender from customer where name < 'JOSEPHINE PINER';
+3442
+select * from customer where gender is not null;
+7000
+select id from customer where id is null;
+0
+select id from customer where gender != 'M';
+4163
+select * from customer where gender > 'F';
+2837
+select gender from customer where name <= 'CHING KIER';
+1174
+select id,name from customer where gender <= 'F';
+4163
+select gender,id from customer where id != 300915;
+6999
+select * from customer where name is not null;
+7000
+select name from customer where name < 'NORBERT ALFRED';
+5097
+select * from customer where name > 'VELMA FIQUEROA';
+368
+select name from customer where name != 'ERWIN STEINBECK';
+6999
+select * from customer where name is not null;
+7000
+select * from customer where id is null;
+0
+select * from customer where name != 'GLADY SPLAWN';
+6999
+select * from customer where id is not null;
+7000
+select id from customer where gender is not null;
+7000
+select gender from customer where id != 302627;
+6999
+select name from customer where gender = 'F';
+4163
+select * from customer where id is null;
+0
+select id,gender from customer where id < 300256;
+255
+select * from customer where id is null;
+0
+select id from customer where gender is null;
+0
+select * from customer where id = 302404;
+1
+select gender from customer where gender > 'F';
+2837
+select name,id from customer where gender > 'M';
+0
+select id,gender from customer where id > 300504;
+6496
+select * from customer where gender is null;
+0
+select * from customer where gender <= 'M';
+7000
+select * from customer where id < 303547;
+3546
+select * from customer where name is not null;
+7000
+select name from customer where id > 300097;
+6903
+select * from customer where gender != 'M';
+4163
+select * from customer where gender > 'F';
+2837
+select gender from customer where gender = 'M';
+2837
+select id,name from customer where gender < 'F';
+0
+select gender,name from customer where id < 305073;
+5072
+select gender,id from customer where name = 'VANCE NEVIUS';
+1
+select * from customer where id is null;
+0
+select name,id from customer where id is not null;
+7000
+select * from customer where id > 305919;
+1081
+select * from customer where id < 302753;
+2752
+select * from customer where name = 'ISAURA BACHMAN';
+1
+select id,name from customer where id is not null;
+7000
+select id from customer where gender != 'M';
+4163
+select gender,id from customer where name > 'RANDOLPH MELTZER';
+1602
+select * from customer where name > 'MILISSA REILLY';
+2220
+select name from customer where gender is null;
+0
+select gender,id from customer where gender >= 'F';
+7000
+select * from customer where name < 'CYTHIA MURTAGH';
+1459
+select * from customer where id is not null;
+7000
+select * from customer where id is not null;
+7000
+select * from customer where gender >= 'M';
+2837
+select * from customer where id = 304501;
+1
+select * from customer where id is null;
+0
+select gender from customer where id < 306356;
+6355
+select * from customer where name < 'GARRET DOIRON';
+2509
+select id,name from customer where name <= 'REMEDIOS BOGDAN';
+5474
+select name from customer where name < 'RUFINA HOFFMANN';
+5756
+select id from customer where name = 'WALKER FUJIMOTO';
+1
+select * from customer where name is null;
+0
+select * from customer where id >= 306955;
+46
+select name from customer where id = 303095;
+1
+select id from customer where gender >= 'M';
+2837
+select gender,name from customer where id != 306071;
+6999
+select * from customer where id != 305449;
+6999
+select * from customer where id >= 300617;
+6384
+select id from customer where id = 300693;
+1
+select name from customer where id is not null;
+7000
+select name,id from customer where name is null;
+0
+select id,name from customer where name = 'CEDRIC DEMPSTER';
+1
+select * from customer where name <= 'MINDY POULOS';
+4796
+select * from customer where id > 304853;
+2147
+select * from customer where gender is not null;
+7000
+select id,gender from customer where gender != 'F';
+2837

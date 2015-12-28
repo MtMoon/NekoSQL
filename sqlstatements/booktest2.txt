@@ -1,0 +1,400 @@
+select id,title,copies,authors from book where id = 217548;
+1
+select * from book where id = 220393;
+1
+select publisher_id,pages from book where id = 243625;
+1
+select publisher_id,pages,id,title from book where id = 203527;
+1
+select copies,id,pages,publisher_id,title from book where id = 222671;
+1
+select id from book where id = 213164;
+1
+select * from book where id = 216876;
+1
+select * from book where id = 240954;
+1
+select * from book where id = 240301;
+1
+select pages,id from book where id = 225380;
+1
+select title,publisher_id,pages,copies,authors from book where id = 212574;
+1
+select authors,title,publisher_id,pages,copies from book where id = 212674;
+1
+select pages,authors,id,copies,publisher_id from book where id = 225641;
+1
+select authors from book where id = 240263;
+1
+select pages,publisher_id,title,id from book where id = 219091;
+1
+select pages,publisher_id,authors from book where id = 201124;
+1
+select * from book where id = 205397;
+1
+select * from book where id = 205261;
+1
+select title,pages,publisher_id,copies from book where id = 226337;
+1
+select copies,publisher_id from book where id = 220326;
+1
+select copies,id,pages,title,authors from book where id = 248632;
+1
+select copies,publisher_id from book where id = 204956;
+1
+select * from book where id = 235727;
+1
+select * from book where id = 242228;
+1
+select copies,title,authors,pages,id from book where id = 239432;
+1
+select * from book where id = 243109;
+1
+select title,authors,pages,copies from book where id = 211643;
+1
+select publisher_id,copies,authors from book where id = 218676;
+1
+select * from book where id = 246067;
+1
+select * from book where id = 225296;
+1
+select publisher_id from book where id = 241969;
+1
+select title from book where id = 225612;
+1
+select title,id,publisher_id from book where id = 220619;
+1
+select copies,id,publisher_id,authors,pages from book where id = 200238;
+1
+select copies,id from book where id = 204374;
+1
+select copies,title,publisher_id,id from book where id = 246507;
+1
+select pages,copies,id,title,authors from book where id = 232542;
+1
+select * from book where id = 219314;
+1
+select * from book where id = 222625;
+1
+select * from book where id = 222001;
+1
+select * from book where id = 246673;
+1
+select publisher_id from book where id = 230599;
+1
+select publisher_id,id,authors from book where id = 206141;
+1
+select * from book where id = 209490;
+1
+select * from book where id = 206068;
+1
+select id from book where id = 226406;
+1
+select * from book where id = 224598;
+1
+select * from book where id = 239066;
+1
+select * from book where id = 224259;
+1
+select * from book where id = 219818;
+1
+select title,copies,publisher_id,id,authors from book where id = 234161;
+1
+select publisher_id,copies,title,id from book where id = 225355;
+1
+select publisher_id,authors,copies from book where id = 216193;
+1
+select * from book where id = 200125;
+1
+select * from book where id = 208217;
+1
+select * from book where id = 209066;
+1
+select * from book where id = 234513;
+1
+select * from book where id = 215376;
+1
+select * from book where id = 204146;
+1
+select authors,pages,copies,id,title from book where id = 229215;
+1
+select pages,id,publisher_id,title from book where id = 230719;
+1
+select publisher_id,pages,id,authors,title from book where id = 236715;
+1
+select title,pages,id,copies,publisher_id from book where id = 235421;
+1
+select publisher_id,title,pages,id from book where id = 225158;
+1
+select authors,title,id,publisher_id from book where id = 212924;
+1
+select title,copies,publisher_id,authors,pages from book where id = 211665;
+1
+select * from book where id = 213438;
+1
+select authors,copies,pages,publisher_id,id from book where id = 236650;
+1
+select copies,authors,id,publisher_id from book where id = 232994;
+1
+select title,publisher_id,id,authors,copies from book where id = 247435;
+1
+select * from book where id = 213078;
+1
+select authors,publisher_id,copies from book where id = 204583;
+1
+select * from book where id = 205926;
+1
+select publisher_id,authors,pages from book where id = 218375;
+1
+select * from book where id = 213348;
+1
+select * from book where id = 237891;
+1
+select * from book where id = 244040;
+1
+select authors,pages,copies,id from book where id = 210057;
+1
+select * from book where id = 200828;
+1
+select * from book where id = 205142;
+1
+select * from book where id = 213768;
+1
+select pages,publisher_id from book where id = 221916;
+1
+select title,copies,id,publisher_id,authors from book where id = 216074;
+1
+select * from book where id = 206394;
+1
+select * from book where id = 212032;
+1
+select authors,title,copies from book where id = 222925;
+1
+select id from book where id = 211280;
+1
+select copies,pages,authors,id from book where id = 219648;
+1
+select pages,id,authors,title,copies from book where id = 222574;
+1
+select * from book where id = 206339;
+1
+select title,pages,id,copies,publisher_id from book where id = 210830;
+1
+select publisher_id from book where id = 233581;
+1
+select pages,title,publisher_id,authors from book where id = 220660;
+1
+select authors from book where id = 236841;
+1
+select * from book where id = 243179;
+1
+select * from book where id = 241796;
+1
+select id,publisher_id,copies from book where id = 246706;
+1
+select * from book where id = 216337;
+1
+select * from book where id = 203687;
+1
+select authors,copies,title,pages,id from book where id = 245393;
+1
+select copies,id,title,authors,pages from book where id = 236934;
+1
+select * from book where id = 200581;
+1
+select * from book where id = 210690;
+1
+select * from book where id = 203713;
+1
+select pages,authors,title from book where id = 227935;
+1
+select * from book where id = 226166;
+1
+select copies,id from book where id = 241885;
+1
+select * from book where id = 227102;
+1
+select * from book where id = 241924;
+1
+select * from book where id = 209029;
+1
+select * from book where id = 229411;
+1
+select title,id from book where id = 225966;
+1
+select pages,publisher_id,copies,id from book where id = 228960;
+1
+select * from book where id = 220844;
+1
+select title,pages,authors,copies,publisher_id from book where id = 200697;
+1
+select * from book where id = 209725;
+1
+select * from book where id = 205487;
+1
+select * from book where id = 229591;
+1
+select id,publisher_id,pages,title from book where id = 239215;
+1
+select title,publisher_id from book where id = 220918;
+1
+select copies from book where id = 239551;
+1
+select * from book where id = 219771;
+1
+select id,pages,authors from book where id = 223761;
+1
+select * from book where id = 237639;
+1
+select * from book where id = 210186;
+1
+select * from book where id = 202984;
+1
+select title,id,authors,publisher_id from book where id = 205989;
+1
+select * from book where id = 208750;
+1
+select pages,authors,id,title from book where id = 235889;
+1
+select * from book where id = 239879;
+1
+select * from book where id = 200065;
+1
+select * from book where id = 203048;
+1
+select pages,id from book where id = 241188;
+1
+select * from book where id = 222436;
+1
+select copies,title,id from book where id = 243315;
+1
+select * from book where id = 239646;
+1
+select * from book where id = 229596;
+1
+select * from book where id = 226404;
+1
+select * from book where id = 216518;
+1
+select * from book where id = 231454;
+1
+select publisher_id from book where id = 219879;
+1
+select * from book where id = 242314;
+1
+select id,title,copies,authors,pages from book where id = 204550;
+1
+select * from book where id = 238366;
+1
+select * from book where id = 224422;
+1
+select publisher_id from book where id = 222659;
+1
+select * from book where id = 239176;
+1
+select * from book where id = 220629;
+1
+select authors,pages from book where id = 237583;
+1
+select * from book where id = 200478;
+1
+select authors,pages,title from book where id = 207998;
+1
+select copies,pages from book where id = 242198;
+1
+select * from book where id = 232867;
+1
+select copies,authors,id,title from book where id = 203589;
+1
+select title from book where id = 248150;
+1
+select * from book where id = 248627;
+1
+select * from book where id = 212615;
+1
+select pages,authors from book where id = 239877;
+1
+select * from book where id = 232075;
+1
+select * from book where id = 231293;
+1
+select publisher_id from book where id = 202612;
+1
+select * from book where id = 248516;
+1
+select authors,publisher_id,pages from book where id = 244348;
+1
+select pages from book where id = 201305;
+1
+select * from book where id = 202034;
+1
+select copies,title,publisher_id,pages,authors from book where id = 211053;
+1
+select copies,title,authors from book where id = 242307;
+1
+select * from book where id = 242186;
+1
+select * from book where id = 200037;
+1
+select * from book where id = 227625;
+1
+select copies,publisher_id from book where id = 204272;
+1
+select * from book where id = 210960;
+1
+select * from book where id = 248941;
+1
+select publisher_id from book where id = 244798;
+1
+select * from book where id = 205077;
+1
+select pages from book where id = 217434;
+1
+select publisher_id from book where id = 207446;
+1
+select id,title from book where id = 224079;
+1
+select pages from book where id = 237798;
+1
+select copies,title,pages,authors,publisher_id from book where id = 220707;
+1
+select publisher_id,pages from book where id = 212527;
+1
+select title,copies,pages,id from book where id = 207321;
+1
+select * from book where id = 201076;
+1
+select authors from book where id = 209929;
+1
+select id,publisher_id,copies,authors from book where id = 237684;
+1
+select * from book where id = 247502;
+1
+select copies,title,id,publisher_id,authors from book where id = 246189;
+1
+select id from book where id = 200026;
+1
+select pages,authors,publisher_id from book where id = 214332;
+1
+select title from book where id = 229321;
+1
+select * from book where id = 234032;
+1
+select * from book where id = 211278;
+1
+select pages,id,title from book where id = 211354;
+1
+select * from book where id = 241787;
+1
+select publisher_id,copies,pages from book where id = 225205;
+1
+select * from book where id = 215209;
+1
+select copies from book where id = 208115;
+1
+select * from book where id = 235745;
+1
+select publisher_id,copies,authors,pages,title from book where id = 219699;
+1
+select * from book where id = 208925;
+1

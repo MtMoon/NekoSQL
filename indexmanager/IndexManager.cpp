@@ -40,7 +40,7 @@ IndexManager::~IndexManager() {
 //返回1为创建成功，0为索引已存在，-1为尚未选中任何database， -2 database不存在
 //-4该表的该字段上已经建过索引
 int IndexManager::createIndex( IndexInfo indexInfo) {
-	cout << "lalala0" << endl;
+	//cout << "lalala0" << endl;
 	if (currentDB == "") {
 		return -1;
 	}
@@ -129,6 +129,7 @@ int IndexManager::createIndex( IndexInfo indexInfo) {
 	//cout << "createIndex " << currentTable << " " << currentIndex <<  endl;
 
 	reBuildData(indexInfo);
+	cout << "creating finished!" << endl;
 
 
 
@@ -306,8 +307,8 @@ int IndexManager::deleteRecord(ConDP key, LP pos) {
 // return -2 其他错误
 int IndexManager::reBuildData(IndexInfo indexinfo) {
 
-	cout << "enter rebuildData" << endl;
-	cout << "current: " << currentTable << " " << currentIndex << endl;
+	cout << "RebuildData..." << endl;
+	//cout << "current: " << currentTable << " " << currentIndex << endl;
 	if (indexinfo.indexType == 2) {
 		return -2;
 	}
@@ -326,14 +327,14 @@ int IndexManager::reBuildData(IndexInfo indexinfo) {
 	//获取数据文件的所有KP
 	vector<KP> vec = dm->getAllKPInTable(indexinfo.tableName.c_str(), indexinfo.fieldName);
 	int vecSize = vec.size();
-	int yxycount = 0;
+	//int yxycount = 0;
 	for (int i=0; i<vecSize; i++) {
 		insert(vec[i].second, vec[i].first);
-		if (vec[i].second.value_int == 104169) {
+		/*if (vec[i].second.value_int == 104169) {
 			yxycount++;
-		}
+		}*/
 	}
-	cout << "yxycount___________________ " << yxycount << endl;
+	//cout << "yxycount___________________ " << yxycount << endl;
 	return 1;
 }
 
@@ -765,7 +766,7 @@ bool  IndexManager::removeLine(ConDP key, LP pos) {
 
 //插入时根节点为空，填充根节点
 void IndexManager::fillRoot(ConDP key) {
-	cout << "enter fillRoot-----------------------------" << endl;
+	cout << "FillRoot..." << endl;
 	openIndex(currentTable, currentIndex);
 
 	int pid1 = -1;

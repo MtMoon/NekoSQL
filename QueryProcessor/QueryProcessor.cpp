@@ -1323,6 +1323,7 @@ void QueryProcessor::PrintRelation(const Relation& relation)
 
 void QueryProcessor::PrintViewTable(const ViewTable& viewTable)
 {
+	//ofstream fout("lalala.txt");
 	cout << "ViewTable:" << endl;
 	int fieldCnt = viewTable.first.size();
 	cout << "No." << "\t";
@@ -1332,11 +1333,16 @@ void QueryProcessor::PrintViewTable(const ViewTable& viewTable)
 	for (int i = 0; i < viewTable.second.size(); i++)
 	{
 		cout << i+1 << "\t";
-		for (int j = 0; j < fieldCnt; j++)
+		for (int j = 0; j < fieldCnt; j++) {
 			cout << TransferCharacter(viewTable.second[i][j]) << "\t";
+			//fout << TransferCharacter(viewTable.second[i][j])  << " ";
+		}
 		cout << endl;
+		//fout << endl;
 	}
 	cout << endl;
+	//fout.clear();
+	//fout.close();
 }
 
 void QueryProcessor::PrintShadowList(const vector<Shadow>& shadowList)
